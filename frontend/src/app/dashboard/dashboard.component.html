@@ -1,0 +1,64 @@
+<div class="dashboard-layout">
+  <!-- Sol Menü -->
+  <aside class="sidebar">
+    <div class="brand">
+      <h2>Veri Akışı</h2>
+    </div>
+    
+    <nav class="menu">
+      <ul>
+        <li class="active"><a href="#">Özet Panel</a></li>
+        <li><a href="#">Sensör Analitiği</a></li>
+        <li><a href="#">Kalite Kontrol</a></li>
+        <li><a href="#">Tahmin Modelleri</a></li>
+      </ul>
+    </nav>
+
+    <div class="sidebar-footer">
+      <!-- logout fonksiyonunu .ts dosyasında tanımlayıp router.navigate(['/login']) yapabilirsin -->
+      <!--<button class="btn-logout" (click)="logout()">Çıkış Yap</button>-->
+      <button class="btn-logout">Çıkış Yap</button>
+    </div>
+  </aside>
+
+  <!-- Ana İçerik -->
+  <main class="main-content">
+    <header class="topbar">
+      <h1>Sistem Durumu</h1>
+      <div class="user-profile">
+        <span>Admin</span>
+        <div class="avatar">A</div>
+      </div>
+    </header>
+
+    <section class="content-area">
+      <!-- Bilgi Kartları -->
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <span class="metric-title">Aktif Veri Hattı</span>
+          <h3 class="metric-value">24 / 24</h3>
+          <span class="metric-trend positive">↑ Sorunsuz</span>
+        </div>
+        
+        <div class="metric-card warning">
+          <span class="metric-title">Tahmini Hata Oranı</span>
+          <h3 class="metric-value">%1.2</h3>
+          <span class="metric-trend negative">Son 1 saatte artış</span>
+        </div>
+
+        <div class="metric-card">
+          <span class="metric-title">İşlenen Paket</span>
+          <h3 class="metric-value">142,530</h3>
+          <span class="metric-trend neutral">Zaman serisi senkronize</span>
+        </div>
+      </div>
+
+      <!-- Grafik / Tablo Alanı -->
+      <div class="chart-container">
+        <div class="placeholder">
+          Zaman Serisi Analiz Grafiği (Buraya Echarts veya Chart.js entegre edilebilir)
+        </div>
+      </div>
+    </section>
+  </main>
+</div>

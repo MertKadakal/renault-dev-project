@@ -10,7 +10,7 @@ async function bootstrap() {
     credentials: true,
   });
 
-  app.setGlobalPrefix('api'); // Tüm API endpoint'leri /api ile başlar
+  //app.setGlobalPrefix('api'); // Tüm API endpoint'leri /api ile başlar
   await app.listen(3000);
 }
 bootstrap();
