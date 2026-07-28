@@ -50,6 +50,7 @@ export class LdapService {
 
           let userDn: string | null = null;
           let userData: any = null;
+          let role = 'user';
 
           res.on('searchEntry', (entry) => {
             // Garantili DN alma yöntemi
@@ -91,10 +92,15 @@ export class LdapService {
 
               console.log('🎉 LDAP Kimlik Doğrulama Tamamen Başarılı!');
 
+              if (normalizedUsername === 'at01093' || normalizedUsername === 'at03178') {
+                role = 'admin';
+              }
+
               resolve({
                 username: normalizedUsername,
                 cn: userData?.cn,
                 dn: userDn,
+                role: role
               });
             });
           });

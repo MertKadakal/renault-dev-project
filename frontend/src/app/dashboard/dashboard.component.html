@@ -14,10 +14,14 @@
       </ul>
     </nav>
 
-    <div class="sidebar-footer">
-      <!-- logout fonksiyonunu .ts dosyasında tanımlayıp router.navigate(['/login']) yapabilirsin -->
-      <!--<button class="btn-logout" (click)="logout()">Çıkış Yap</button>-->
-      <button class="btn-logout">Çıkış Yap</button>
+    <!-- dashboard.component.html -->
+    <div class="header">
+      <span>Rol: {{ role }}</span>
+
+      <!-- Çıkış yap / Logout Butonu -->
+      <button (click)="onLogout()" class="btn-logout">
+        Çıkış Yap
+      </button>
     </div>
   </aside>
 
@@ -26,8 +30,8 @@
     <header class="topbar">
       <h1>Sistem Durumu</h1>
       <div class="user-profile">
-        <span>Admin</span>
-        <div class="avatar">A</div>
+        <span>{{ role || 'Kullanıcı' }}</span>
+        <div class="avatar">{{ role ? role.charAt(0).toUpperCase() : 'U' }}</div>
       </div>
     </header>
 

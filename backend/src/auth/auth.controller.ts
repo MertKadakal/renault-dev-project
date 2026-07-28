@@ -16,7 +16,7 @@ export class AuthController {
     const user = await this.ldapService.validateUser(body.username, body.pass);
 
     // 2. JWT Token oluştur
-    const payload = { username: user.username, sub: user.dn, name: user.cn };
+    const payload = { username: user.username, sub: user.dn, name: user.cn, role: user.role };
     const accessToken = this.jwtService.sign(payload);
 
     return {
@@ -24,6 +24,7 @@ export class AuthController {
       user: {
         username: user.username,
         name: user.cn,
+        role: user.role,
       },
     };
   }

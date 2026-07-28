@@ -21,9 +21,9 @@ export class LoginComponent {
 
   onLogin() {
     this.authService.login(this.username, this.password).subscribe({
-      next: (res: unknown) => {
+      next: (res: any) => {
         console.log('Giriş başarılı:', res);
-        this.router.navigate(['/dashboard']);
+        this.router.navigate(['/dashboard'], { state: { role: res.user?.role } });
       },
       error: (err: { error?: { message?: string } }) => {
         this.errorMessage = err.error?.message || 'Giriş başarısız!';

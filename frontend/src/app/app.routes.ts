@@ -7,7 +7,7 @@ export const routes: Routes = [
   { path: 'login', component: LoginComponent },
   
   // Kullanıcı /dashboard adresine giderse DashboardComponent çalışır
-  { path: 'dashboard', component: DashboardComponent },
+  { path: 'dashboard', component: DashboardComponent, /*canActivate: [AuthGuard]*/ },
   
   // Uygulama ilk açıldığında boş path gelirse login'e yönlendir
   { path: '', redirectTo: '/login', pathMatch: 'full' } 
