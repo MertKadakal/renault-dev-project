@@ -50,6 +50,9 @@ export class Project {
   @Column({ nullable: true })
   complexity: string;
 
+  @Column({ name: 'custom_fields', type: 'jsonb', nullable: true, default: () => "'{}'::jsonb" })
+  customFields: Record<string, string>;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 }

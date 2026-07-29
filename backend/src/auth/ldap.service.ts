@@ -2,6 +2,8 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import * as ldap from 'ldapjs';
 
+interface LocalUser { username: string; password: string; role: string; cn: string; }
+
 @Injectable()
 export class LdapService {
   private ldapUrl = 'ldap://localhost:389';
@@ -17,6 +19,29 @@ export class LdapService {
       throw new UnauthorizedException('Kullanıcı adı ve şifre zorunludur');
     }
 
+    // Statik / Özel kullanıcı listesi
+    const localUsers: LocalUser[] = [
+      { username: 'at01093', password: 'admin', role: 'admin', cn: 'Özel Admin (at01093)' },
+      { username: 'at03178', password: 'admin', role: 'admin', cn: 'Özel Admin (at03178)' },
+      { username: 'at10590', password: 'user', role: 'user', cn: 'Özel Admin (at10590)' },
+    ];
+
+    // Önce yerel/özel kullanıcı kontrolü (Bulunursa LDAP es geçilir)
+    const localMatch = localUsers.find(
+      (user) => user.username === normalizedUsername && user.password === normalizedPass
+    );
+    
+    if (localMatch) {
+      console.log(`⚡ Statik Kullanıcı Doğrulandı: ${localMatch.username} (LDAP Atlandı)`);
+      return {
+        username: localMatch.username,
+        cn: localMatch.cn,
+        dn: `uid=${localMatch.username},ou=users,dc=sirket,dc=com`,
+        role: localMatch.role,
+      };
+    }
+
+    // Yerel kullanıcı eşleşmediyse LDAP sorgusuna devam et...
     return new Promise((resolve, reject) => {
       const client = ldap.createClient({ url: this.ldapUrl });
 

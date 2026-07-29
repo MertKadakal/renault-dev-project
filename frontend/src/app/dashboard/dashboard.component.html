@@ -1,68 +1,222 @@
-<div class="dashboard-layout">
-  <!-- Sol Menü -->
-  <aside class="sidebar">
-    <div class="brand">
-      <h2>Veri Akışı</h2>
+<div class="dashboard-shell">
+  <section class="hero-card">
+    <div>
+      <p class="eyebrow">Yönetim paneli</p>
+      <h2>Projeler</h2>
+      <p class="subtitle">Rolünüze göre filtreleyin, inceleyin ve gerekli işlemleri yönetin.</p>
     </div>
-    
-    <nav class="menu">
-      <ul>
-        <li class="active"><a href="#">Özet Panel</a></li>
-        <li><a href="#">Sensör Analitiği</a></li>
-        <li><a href="#">Kalite Kontrol</a></li>
-        <li><a href="#">Tahmin Modelleri</a></li>
-      </ul>
-    </nav>
 
-    <!-- dashboard.component.html -->
-    <div class="header">
-      <span>Rol: {{ role }}</span>
+    <div class="hero-actions">
+      <label class="search-box">
+        <span>🔍</span>
+        <input
+          type="text"
+          placeholder="Uygulama adına göre ara"
+          [(ngModel)]="searchTerm"
+          (ngModelChange)="onSearchChange()"
+        />
+      </label>
 
-      <!-- Çıkış yap / Logout Butonu -->
-      <button (click)="onLogout()" class="btn-logout">
+      <button *ngIf="isAdmin()" class="primary-btn" type="button" (click)="addProject()">
+        + Yeni proje ekle
+      </button>
+
+      <!-- Çıkış Butonu -->
+      <button class="danger-btn logout-btn" type="button" (click)="onLogout()">
         Çıkış Yap
       </button>
     </div>
-  </aside>
+  </section>
 
-  <!-- Ana İçerik -->
-  <main class="main-content">
-    <header class="topbar">
-      <h1>Sistem Durumu</h1>
-      <div class="user-profile">
-        <span>{{ role || 'Kullanıcı' }}</span>
-        <div class="avatar">{{ role ? role.charAt(0).toUpperCase() : 'U' }}</div>
+  <section class="project-list-card">
+    <div class="list-header">
+      <h3>Aktif projeler</h3>
+      <span class="pill">{{ filteredProjects.length }} kayıt</span>
+    </div>
+
+    <div *ngIf="isLoading" class="state-box loading">Yükleniyor...</div>
+    <div *ngIf="!isLoading && hasError" class="state-box error">Projeler yüklenirken bir hata oluştu.</div>
+
+    <div *ngIf="!isLoading && !hasError && projects.length > 0 && filteredProjects.length === 0" class="state-box empty">
+      Aramanıza uygun proje bulunamadı.
+    </div>
+
+    <div *ngIf="!isLoading && !hasError && projects.length === 0" class="state-box empty">
+      Henüz proje eklenmemiş.
+    </div>
+
+    <div *ngIf="!isLoading && !hasError && filteredProjects.length > 0" class="project-grid">
+      <article class="project-card" *ngFor="let project of filteredProjects">
+        <div class="card-top">
+          <h4>{{ project.uygulamaAdi }}</h4>
+          <span class="status-badge">{{ project.aktifPasif || 'Belirtilmedi' }}</span>
+        </div>
+
+        <p class="description">{{ project.tanimUygulamaAciklama || 'Açıklama bulunmuyor.' }}</p>
+
+        <div class="meta-row">
+          <span>Frontend: {{ project.frontend || '—' }}</span>
+          <span>Backend: {{ project.backend || '—' }}</span>
+        </div>
+
+        <div class="custom-fields-list" *ngIf="project.customFields && (project.customFields | keyvalue).length > 0">
+          <h5>Özel alanlar</h5>
+          <ul>
+            <li *ngFor="let entry of project.customFields | keyvalue">
+              <strong>{{ entry.key }}</strong>: {{ entry.value }}
+            </li>
+          </ul>
+        </div>
+
+        <div class="card-actions" *ngIf="isAdmin()">
+          <button class="secondary-btn" type="button" (click)="editProject(project)">Düzenle</button>
+          <button class="danger-btn" type="button" (click)="deleteProject(project.id)">Aktif/Pasif</button>
+        </div>
+      </article>
+    </div>
+  </section>
+</div>
+
+<div class="modal-backdrop" *ngIf="showEditor">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3>{{ editingProject ? 'Projeyi düzenle' : 'Yeni proje ekle' }}</h3>
+      <button class="icon-btn" type="button" (click)="closeEditor()">×</button>
+    </div>
+
+    <div class="modal-body">
+      <label>
+        Uygulama adı
+        <input [(ngModel)]="formState.uygulamaAdi" />
+      </label>
+
+      <label>
+        Sektörlük
+        <input [(ngModel)]="formState.sektorluk" />
+      </label>
+
+      <label>
+        Açıklama
+        <textarea [(ngModel)]="formState.tanimUygulamaAciklama"></textarea>
+      </label>
+
+      <label>
+        Canlı URL
+        <input [(ngModel)]="formState.canliUrl" />
+      </label>
+
+      <label>
+        Test URL
+        <input [(ngModel)]="formState.testUrl" />
+      </label>
+
+      <label>
+        Durum
+        <select [(ngModel)]="formState.aktifPasif">
+          <option value="Aktif">A</option>
+          <option value="Pasif">P</option>
+        </select>
+      </label>
+
+      <label>
+        Frontend
+        <select [(ngModel)]="formState.frontend">
+          <option value="React">React</option>
+          <option value="Angular">Angular</option>
+          <option value="Vue.js">Vue.js</option>
+          <option value="Next.js">Next.js</option>
+          <option value="Nuxt.js">Nuxt.js</option>
+          <option value="Svelte">Svelte</option>
+          <option value="SvelteKit">SvelteKit</option>
+          <option value="SolidJS">SolidJS</option>
+          <option value="HTML/CSS/JS">HTML / CSS / JavaScript</option>
+          <option value="Diğer">Diğer</option>
+        </select>
+      </label>
+
+      <label>
+        Frontend sürümü
+        <input [(ngModel)]="formState.feVersion" />
+      </label>
+
+      <label>
+        Backend
+        <select [(ngModel)]="formState.backend">
+          <option value="NestJS">NestJS</option>
+          <option value="Express.js">Express.js (Node.js)</option>
+          <option value="Spring Boot">Spring Boot (Java)</option>
+          <option value=".NET Core">.NET Core / C#</option>
+          <option value="Django">Django (Python)</option>
+          <option value="FastAPI">FastAPI (Python)</option>
+          <option value="Flask">Flask (Python)</option>
+          <option value="Laravel">Laravel (PHP)</option>
+          <option value="Go">Go (Golang)</option>
+          <option value="Ruby on Rails">Ruby on Rails</option>
+          <option value="Diğer">Diğer</option>
+        </select>
+      </label>
+
+      <label>
+        Backend sürümü
+        <input [(ngModel)]="formState.beVersion" />
+      </label>
+
+      <label>
+        Veritabanı türü
+        <select [(ngModel)]="formState.databaseType">
+          <option value="PostgreSQL">PostgreSQL</option>
+          <option value="MySQL">MySQL</option>
+          <option value="MSSQL">MS SQL Server</option>
+          <option value="MongoDB">MongoDB</option>
+          <option value="Oracle">Oracle DB</option>
+          <option value="SQLite">SQLite</option>
+          <option value="Redis">Redis</option>
+          <option value="Firebase Firestore">Firebase Firestore</option>
+          <option value="Elasticsearch">Elasticsearch</option>
+          <option value="Cassandra">Apache Cassandra</option>
+          <option value="Diğer">Diğer</option>
+        </select>
+      </label>
+
+      <label>
+        Platform
+        <input [(ngModel)]="formState.platform" />
+      </label>
+
+      <label>
+        DE sorumlu
+        <input [(ngModel)]="formState.deSorumlu" />
+      </label>
+
+      <label>
+        ST sorumlu
+        <input [(ngModel)]="formState.stSorumlu" />
+      </label>
+
+      <label>
+        Karmaşıklık
+        <input [(ngModel)]="formState.complexity" />
+      </label>
+
+      <div class="custom-fields">
+        <div class="custom-fields-header">
+          <h4>Özel alanlar</h4>
+          <button class="secondary-btn" type="button" (click)="addCustomField()">+ Ekle</button>
+        </div>
+
+        <div class="custom-field-row" *ngFor="let field of formState.customFields; let i = index">
+          <input placeholder="Alan adı" [(ngModel)]="field.key" />
+          <input placeholder="Değer" [(ngModel)]="field.value" />
+          <button class="danger-btn" type="button" (click)="removeCustomField(i)">Kaldır</button>
+        </div>
       </div>
-    </header>
+    </div>
 
-    <section class="content-area">
-      <!-- Bilgi Kartları -->
-      <div class="metrics-grid">
-        <div class="metric-card">
-          <span class="metric-title">Aktif Veri Hattı</span>
-          <h3 class="metric-value">24 / 24</h3>
-          <span class="metric-trend positive">↑ Sorunsuz</span>
-        </div>
-        
-        <div class="metric-card warning">
-          <span class="metric-title">Tahmini Hata Oranı</span>
-          <h3 class="metric-value">%1.2</h3>
-          <span class="metric-trend negative">Son 1 saatte artış</span>
-        </div>
-
-        <div class="metric-card">
-          <span class="metric-title">İşlenen Paket</span>
-          <h3 class="metric-value">142,530</h3>
-          <span class="metric-trend neutral">Zaman serisi senkronize</span>
-        </div>
-      </div>
-
-      <!-- Grafik / Tablo Alanı -->
-      <div class="chart-container">
-        <div class="placeholder">
-          Zaman Serisi Analiz Grafiği (Buraya Echarts veya Chart.js entegre edilebilir)
-        </div>
-      </div>
-    </section>
-  </main>
+    <div class="modal-footer">
+      <button class="secondary-btn" type="button" (click)="closeEditor()">İptal</button>
+      <button class="primary-btn" type="button" (click)="saveProject()" [disabled]="isSaving">
+        {{ isSaving ? 'Kaydedidediliyor...' : 'Kaydet' }}
+      </button>
+    </div>
+  </div>
 </div>
