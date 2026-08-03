@@ -167,8 +167,3 @@ docker-compose up --build
 ```
 
 Open the frontend at http://localhost:4200 and the backend at http://localhost:3000. The backend will talk to Postgres at the service name `db` inside the compose network.
-
-## Try asking
-- Would you like the backend to read Postgres credentials from environment variables or a config file instead of the hardcoded values in backend/src/app.module.ts?  
-- Do you want me to create the `docker-compose.yml` and the two Dockerfiles in the repo (I can add them and a brief README section)?
-- Should I review or add DTO validation and pagination for the Projects endpoints (see backend/src/projects/projects.controller.ts and backend/src/projects/projects.service.ts)?
