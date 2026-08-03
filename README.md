@@ -65,8 +65,3 @@ Notes on configuration (from code)
   - autoLoadEntities: true, synchronize: false
 - CORS in backend/src/main.ts permits origin `http://localhost:4200` with credentials.
 - `frontend/src/proxy.conf.json` exists to simplify local API calls.
-
-## Try asking
-- Would you like the backend to read Postgres credentials from environment variables or a config file instead of the hardcoded values in backend/src/app.module.ts?  
-- Do you want a Docker Compose file to run Postgres + backend + frontend together for local development (I can create docker-compose.yml and Dockerfiles)?  
-- Should I review or add DTO validation and pagination for the Projects endpoints (see backend/src/projects/projects.controller.ts and backend/src/projects/projects.service.ts)?
