@@ -1,5 +1,5 @@
 // src/auth/auth.controller.ts
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Post, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { LdapService } from './ldap.service';
 
@@ -12,20 +12,23 @@ export class AuthController {
 
   @Post('login')
   async login(@Body() body: { username: string; pass: string }) {
-    // 1. LDAP ile kullanıcıyı doğrula
-    const user = await this.ldapService.validateUser(body.username, body.pass);
+    try {
+      const user = await this.ldapService.validateUser(body.username, body.pass);
 
-    // 2. JWT Token oluştur
-    const payload = { username: user.username, sub: user.dn, name: user.cn, role: user.role };
-    const accessToken = this.jwtService.sign(payload);
+      const payload = { username: user.username, sub: user.dn, name: user.cn, role: user.role };
+      const accessToken = this.jwtService.sign(payload);
 
-    return {
-      access_token: accessToken,
-      user: {
-        username: user.username,
-        name: user.cn,
-        role: user.role,
-      },
-    };
+      return {
+        access_token: accessToken,
+        user: {
+          username: user.username,
+          name: user.cn,
+          role: user.role,
+        },
+      };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Giriş başarısız';
+      throw new UnauthorizedException(message);
+    }
   }
 }

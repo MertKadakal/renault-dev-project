@@ -4,12 +4,55 @@ import * as ldap from 'ldapjs';
 
 interface LocalUser { username: string; password: string; role: string; cn: string; }
 
+export interface LdapConfig {
+  url: string;
+  adminDn: string;
+  adminPassword: string;
+  searchBase: string;
+  searchBases: string[];
+  adminDns: string[];
+  userAttribute: string;
+}
+
+export function resolveLdapConfig(env: NodeJS.ProcessEnv = process.env): LdapConfig {
+  const baseDn = env.LDAP_SEARCH_BASE || env.LDAP_BASE_DN || 'dc=sirket,dc=com';
+  const searchBases = Array.from(
+    new Set([
+      baseDn,
+      `ou=users,${baseDn}`,
+      `ou=people,${baseDn}`,
+      baseDn.startsWith('ou=') ? baseDn.replace(/^ou=[^,]+,/, '') : baseDn,
+    ].filter(Boolean))
+  );
+
+  const adminDn = env.LDAP_ADMIN_DN || 'cn=admin,dc=sirket,dc=com';
+  const adminDns = Array.from(
+    new Set([
+      adminDn,
+      `uid=admin,${baseDn}`,
+      `cn=admin,${baseDn}`,
+      `uid=admin,ou=users,${baseDn}`,
+      `cn=Manager,${baseDn}`,
+      `uid=manager,${baseDn}`,
+    ].filter(Boolean))
+  );
+
+  return {
+    url: env.LDAP_URL || 'ldap://localhost:389',
+    adminDn,
+    adminPassword: env.LDAP_ADMIN_PASSWORD || 'adminpassword',
+    searchBase: baseDn,
+    searchBases,
+    adminDns,
+    userAttribute: env.LDAP_USER_ATTR || 'uid',
+  };
+}
+
 @Injectable()
 export class LdapService {
-  private ldapUrl = 'ldap://localhost:389';
-  private adminDn = 'cn=admin,dc=sirket,dc=com';
-  private adminPassword = 'adminpassword';
-  private searchBase = 'ou=users,dc=sirket,dc=com';
+  private getConfig(): LdapConfig {
+    return resolveLdapConfig();
+  }
 
   async validateUser(username: string, pass: string): Promise<any> {
     const normalizedUsername = username?.trim();
@@ -19,18 +62,16 @@ export class LdapService {
       throw new UnauthorizedException('Kullanıcı adı ve şifre zorunludur');
     }
 
-    // Statik / Özel kullanıcı listesi
     const localUsers: LocalUser[] = [
       { username: 'at01093', password: 'admin', role: 'admin', cn: 'Özel Admin (at01093)' },
       { username: 'at03178', password: 'admin', role: 'admin', cn: 'Özel Admin (at03178)' },
       { username: 'at10590', password: 'user', role: 'user', cn: 'Özel Admin (at10590)' },
     ];
 
-    // Önce yerel/özel kullanıcı kontrolü (Bulunursa LDAP es geçilir)
     const localMatch = localUsers.find(
       (user) => user.username === normalizedUsername && user.password === normalizedPass
     );
-    
+
     if (localMatch) {
       console.log(`⚡ Statik Kullanıcı Doğrulandı: ${localMatch.username} (LDAP Atlandı)`);
       return {
@@ -41,35 +82,59 @@ export class LdapService {
       };
     }
 
-    // Yerel kullanıcı eşleşmediyse LDAP sorgusuna devam et...
-    return new Promise((resolve, reject) => {
-      const client = ldap.createClient({ url: this.ldapUrl });
+    const config = this.getConfig();
+    let lastError: Error | null = null;
 
-      // Client tarafındaki genel hataları yakala
+    for (const adminDn of config.adminDns) {
+      for (const searchBase of config.searchBases) {
+        try {
+          const authenticatedUser = await this.authenticateWithLdap(config, adminDn, searchBase, normalizedUsername, normalizedPass);
+          if (authenticatedUser) {
+            return authenticatedUser;
+          }
+        } catch (error) {
+          lastError = error as Error;
+          console.warn(`⚠️ LDAP denemesi başarısız. Admin DN: ${adminDn}, Base: ${searchBase}`, (error as Error).message);
+        }
+      }
+    }
+
+    if (lastError) {
+      throw new UnauthorizedException(lastError.message || 'Kullanıcı adı veya şifre hatalı');
+    }
+
+    throw new UnauthorizedException('Kullanıcı adı veya şifre hatalı veya LDAP yapılandırması hatalı');
+  }
+
+  private authenticateWithLdap(
+    config: LdapConfig,
+    adminDn: string,
+    searchBase: string,
+    normalizedUsername: string,
+    normalizedPass: string,
+  ): Promise<any> {
+    return new Promise((resolve, reject) => {
+      const client = ldap.createClient({ url: config.url });
+
       client.on('error', (err) => {
         console.error('❌ LDAP Client Bağlantı Hatası:', err.message);
       });
 
-      // 1. Önce Admin ile bağlan
-      client.bind(this.adminDn, this.adminPassword, (err) => {
+      client.bind(adminDn, config.adminPassword, (err) => {
         if (err) {
-          console.error('❌ Admin Bind Hatası (Admin şifresi veya DN yanlış olabilir):', err.message);
-          client.unbind();
-          return reject(new UnauthorizedException('LDAP Admin Bağlantı Hatası'));
+          client.unbind(() => undefined);
+          return reject(new UnauthorizedException(`LDAP admin bind hatası: ${err.message}`));
         }
 
-        console.log(`🔍 LDAP Admin Bağlantısı Başarılı. Kullanıcı aranıyor: ${normalizedUsername}`);
-
-        // 2. Kullanıcıyı 'uid' ile ara
+        const filter = `(${config.userAttribute}=${normalizedUsername})`;
         const opts: ldap.SearchOptions = {
-          filter: `(uid=${normalizedUsername})`,
+          filter,
           scope: 'sub',
         };
 
-        client.search(this.searchBase, opts, (searchErr, res) => {
+        client.search(searchBase, opts, (searchErr, res) => {
           if (searchErr || !res) {
-            console.error('❌ LDAP Search Başlatma Hatası:', searchErr?.message);
-            client.unbind();
+            client.unbind(() => undefined);
             return reject(new UnauthorizedException('LDAP kullanıcı araması sırasında hata oluştu'));
           }
 
@@ -78,54 +143,44 @@ export class LdapService {
           let role = 'user';
 
           res.on('searchEntry', (entry) => {
-            // Garantili DN alma yöntemi
-            userDn = entry.dn ? entry.dn.toString() : (entry as any).objectName; 
+            userDn = entry.dn ? entry.dn.toString() : (entry as any).objectName;
             userData = (entry as any).object;
             console.log(`✅ Kullanıcı Dizin Katmanında Bulundu. DN: ${userDn}`);
           });
 
           res.on('error', (err) => {
-            console.error('❌ LDAP Arama Esnasında Hata:', err.message);
-            client.unbind();
-            return reject(new UnauthorizedException('Arama sırasında hata oluştu'));
+            client.unbind(() => undefined);
+            return reject(new UnauthorizedException(`LDAP arama hatası: ${err.message}`));
           });
 
-          res.on('end', (result) => {
+          res.on('end', () => {
             if (!userDn) {
-              console.error(`❌ Kullanıcı Bulunamadı! Base: ${this.searchBase}, Filter: (uid=${normalizedUsername})`);
-              client.unbind();
-              return reject(new UnauthorizedException('Kullanıcı bulunamadı'));
+              client.unbind(() => undefined);
+              return resolve(null);
             }
 
-            console.log(`🔑 Kullanıcı Şifresi Doğrulanıyor (Bind deneniyor)...`);
-
-            // 3. Bulunan DN ve kullanıcının girdiği şifre ile ikinci Bind (Auth) yap
-            const userClient = ldap.createClient({ url: this.ldapUrl });
-
+            const userClient = ldap.createClient({ url: config.url });
             userClient.on('error', (err) => {
               console.error('❌ User Client Hatası:', err.message);
             });
 
             userClient.bind(userDn, normalizedPass, (bindErr) => {
-              client.unbind();
-              userClient.unbind();
+              client.unbind(() => undefined);
+              userClient.unbind(() => undefined);
 
               if (bindErr) {
-                console.error(`❌ Şifre Doğrulama Başarısız! Girilen Şifre Hatalı. Detay: ${bindErr.message}`);
-                return reject(new UnauthorizedException('Kullanıcı adı veya şifre hatalı'));
+                return resolve(null);
               }
-
-              console.log('🎉 LDAP Kimlik Doğrulama Tamamen Başarılı!');
 
               if (normalizedUsername === 'at01093' || normalizedUsername === 'at03178') {
                 role = 'admin';
               }
 
-              resolve({
+              return resolve({
                 username: normalizedUsername,
-                cn: userData?.cn,
+                cn: userData?.cn || userData?.displayName || normalizedUsername,
                 dn: userDn,
-                role: role
+                role,
               });
             });
           });

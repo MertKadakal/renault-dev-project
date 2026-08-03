@@ -43,6 +43,7 @@ export class DashboardComponent implements OnInit {
   editingProject: Project | null = null;
   formState: ProjectFormState = this.createEmptyFormState();
   isSaving = false;
+  searchField: string = 'all';
 
   
 
@@ -81,12 +82,6 @@ export class DashboardComponent implements OnInit {
     });
   }
 
-  onSearchChange(): void {
-    const term = this.searchTerm.toLowerCase().trim();
-    this.filteredProjects = this.projects.filter((project) =>
-      project.uygulamaAdi?.toLowerCase().includes(term)
-    );
-  }
 
   isAdmin(): boolean {
     return this.role === 'admin';
@@ -208,4 +203,35 @@ export class DashboardComponent implements OnInit {
   onLogout(): void {
     this.authService.logout();
   }
+
+  onSearchChange(): void {
+  const term = this.searchTerm.toLowerCase().trim();
+  
+  // Arama terimi boşsa tüm projeleri göster
+  if (!term) {
+    this.filteredProjects = [...this.projects];
+    return;
+  }
+
+  this.filteredProjects = this.projects.filter((project) => {
+    if (this.searchField === 'all') {
+      // Tüm alanlarda arama yap
+      return (
+        project.uygulamaAdi?.toLowerCase().includes(term) ||
+        project.sektorluk?.toLowerCase().includes(term) ||
+        project.tanimUygulamaAciklama?.toLowerCase().includes(term) ||
+        project.frontend?.toLowerCase().includes(term) ||
+        project.backend?.toLowerCase().includes(term) ||
+        project.databaseType?.toLowerCase().includes(term) ||
+        project.platform?.toLowerCase().includes(term) ||
+        project.deSorumlu?.toLowerCase().includes(term) ||
+        project.stSorumlu?.toLowerCase().includes(term)
+      );
+    } else {
+      // Sadece seçili alanda arama yap (örn: project['frontend'])
+      const value = (project as any)[this.searchField];
+      return value ? value.toString().toLowerCase().includes(term) : false;
+    }
+  });
+}
 }

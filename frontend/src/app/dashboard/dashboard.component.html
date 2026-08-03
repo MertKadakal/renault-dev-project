@@ -7,15 +7,32 @@
     </div>
 
     <div class="hero-actions">
-      <label class="search-box">
-        <span>🔍</span>
-        <input
-          type="text"
-          placeholder="Uygulama adına göre ara"
-          [(ngModel)]="searchTerm"
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <select 
+          [(ngModel)]="searchField" 
           (ngModelChange)="onSearchChange()"
-        />
-      </label>
+          style="padding: 8px; border-radius: 6px; border: 1px solid #ccc; background: white;">
+          <option value="all">Tüm Alanlar</option>
+          <option value="uygulamaAdi">Uygulama Adı</option>
+          <option value="sektorluk">Sektör</option>
+          <option value="frontend">Frontend</option>
+          <option value="backend">Backend</option>
+          <option value="databaseType">Veritabanı</option>
+          <option value="platform">Platform</option>
+          <option value="deSorumlu">DE Sorumlu</option>
+          <option value="stSorumlu">ST Sorumlu</option>
+        </select>
+
+        <label class="search-box">
+          <span>🔍</span>
+          <input
+            type="text"
+            [placeholder]="searchField === 'all' ? 'Tüm alanlarda ara...' : 'Ara...'"
+            [(ngModel)]="searchTerm"
+            (ngModelChange)="onSearchChange()"
+          />
+        </label>
+      </div>
 
       <button *ngIf="isAdmin()" class="primary-btn" type="button" (click)="addProject()">
         + Yeni proje ekle
