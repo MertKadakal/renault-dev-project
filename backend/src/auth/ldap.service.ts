@@ -63,9 +63,9 @@ export class LdapService {
     }
 
     const localUsers: LocalUser[] = [
-      { username: 'at01093', password: 'admin', role: 'admin', cn: 'Özel Admin (at01093)' },
-      { username: 'at03178', password: 'admin', role: 'admin', cn: 'Özel Admin (at03178)' },
-      { username: 'at10590', password: 'user', role: 'user', cn: 'Özel Admin (at10590)' },
+      { username: 'at01093', password: 'admin', role: 'admin', cn: 'abilgilioglu' },
+      { username: 'at03178', password: 'admin', role: 'admin', cn: 'ailter' },
+      { username: 'at10590', password: 'user', role: 'user', cn: 'mkadakal' },
     ];
 
     const localMatch = localUsers.find(

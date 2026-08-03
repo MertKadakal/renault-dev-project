@@ -1,102 +1,93 @@
-/* Ana konteyner: Sayfa ortalama ve arka plan */
-.login-container {
-  max-width: 380px;
-  margin: 60px auto;
-  padding: 32px 28px;
-  background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  box-sizing: border-box;
+/* Tarayıcının varsayılan dış/iç boşluklarını sıfırla */
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden; /* Gerekirse gereksiz kaydırma çubuklarını engeller */
 }
 
-/* Başlık stili */
-.login-container h2 {
-  margin-top: 0;
-  margin-bottom: 24px;
-  color: #1e293b;
-  font-size: 1.5rem;
-  font-weight: 600;
-  text-align: center;
-  letter-spacing: -0.5px;
-}
-
-/* Form elemanı grupları */
-.login-container form > div {
-  margin-bottom: 18px;
+:host {
   display: flex;
-  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  
+  /* Ekranı tam kaplaması için */
+  width: 100vw;
+  height: 100vh;
+  min-height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  
+  /* Arka plan resmi, %50 karartma filtresi ve ekranı tam doldurma */
+  background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), var(--bg-image);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  
+  box-sizing: border-border;
 }
 
-/* Etiketler (Labels) */
-.login-container label {
-  margin-bottom: 6px;
-  color: #475569;
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-
-/* Girdi kutuları (Input) */
-.login-container input[type="text"],
-.login-container input[type="password"] {
+/* Form Kartı */
+.login-container {
+  background: rgba(255, 255, 255, 0.95);
+  padding: 30px 40px;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
   width: 100%;
-  padding: 10px 14px;
-  font-size: 0.95rem;
-  color: #0f172a;
-  background-color: #f8fafc;
-  border: 1.5px solid #e2e8f0;
-  border-radius: 8px;
-  outline: none;
-  transition: all 0.2s ease-in-out;
+  max-width: 400px;
+  text-align: center;
+  z-index: 1; /* Formun üstte kalmasını garanti eder */
+}
+
+.logo-container {
+  margin-bottom: 20px;
+}
+
+.login-logo {
+  max-width: 150px;
+  height: auto;
+  object-fit: contain;
+}
+
+.login-container h2 {
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.login-container form div {
+  margin-bottom: 16px;
+  text-align: left;
+}
+
+.login-container label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+  color: #555;
+}
+
+.login-container input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
   box-sizing: border-box;
 }
 
-/* Input odaklanma (Focus) stili */
-.login-container input[type="text"]:focus,
-.login-container input[type="password"]:focus {
-  background-color: #ffffff;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
-}
-
-/* Placeholder stili */
-.login-container input::placeholder {
-  color: #94a3b8;
-}
-
-/* Giriş Yap Butonu */
-.login-container button[type="submit"] {
+.login-container button {
   width: 100%;
-  margin-top: 8px;
   padding: 12px;
-  background-color: #2563eb;
-  color: #ffffff;
+  background-color: #000;
+  color: #fff;
   border: none;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s ease, transform 0.1s ease;
-}
-
-/* Buton etkileşimleri */
-.login-container button[type="submit"]:hover {
-  background-color: #1d4ed8;
-}
-
-.login-container button[type="submit"]:active {
-  transform: scale(0.98);
-}
-
-/* Hata mesajı alanı */
-.login-container p {
-  margin-top: 16px;
-  margin-bottom: 0;
-  padding: 10px;
-  background-color: #fef2f2;
-  border: 1px solid #fecaca;
   border-radius: 6px;
-  color: #dc2626 !important; /* inline red stilini ezer */
-  font-size: 0.875rem;
-  text-align: center;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.login-container button:hover {
+  background-color: #333;
 }

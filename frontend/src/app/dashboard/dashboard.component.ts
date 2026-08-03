@@ -44,9 +44,17 @@ export class DashboardComponent implements OnInit {
   formState: ProjectFormState = this.createEmptyFormState();
   isSaving = false;
   searchField: string = 'all';
+  currentUser: { username: string; name: string; role?: string } | null = null;
+  readonly textLimit: number = 30;
 
+  ngOnInit(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      this.fetchProjects();
+    }
+
+    this.currentUser = this.authService.getUser();
+  }
   
-
   constructor(
     private projectService: ProjectService,
     private authService: AuthService,
@@ -57,11 +65,27 @@ export class DashboardComponent implements OnInit {
     this.role = this.authService.getRole() ?? this.router.getCurrentNavigation()?.extras?.state?.['role'] ?? null;
   }
 
-  ngOnInit(): void {
-    if (isPlatformBrowser(this.platformId)) {
-      this.fetchProjects();
-    }
+  viewMode: 'grid' | 'table' = 'grid';
+
+  // Görünüm modunu değiştiren fonksiyon
+  setViewMode(mode: 'grid' | 'table'): void {
+    this.viewMode = mode;
   }
+
+  // Pop-up durumunu tutan değişken
+  isProfileOpen: boolean = false;
+
+  // Pop-up'ı açma
+  openProfile(): void {
+    this.isProfileOpen = true;
+  }
+
+  // Pop-up'ı kapatma
+  closeProfile(): void {
+    this.isProfileOpen = false;
+  }
+
+  
 
   fetchProjects(): void {
     this.isLoading = true;
@@ -94,7 +118,7 @@ export class DashboardComponent implements OnInit {
       tanimUygulamaAciklama: '',
       canliUrl: '',
       testUrl: '',
-      aktifPasif: 'Aktif',
+      aktifPasif: 'A',
       frontend: '',
       feVersion: '',
       backend: '',
@@ -150,6 +174,11 @@ export class DashboardComponent implements OnInit {
     if (!this.isAdmin()) {
       return;
     }
+
+    if (!this.formState.uygulamaAdi || !this.formState.uygulamaAdi.trim()) {
+    alert('Lütfen uygulama adını giriniz.'); // veya projenizdeki bildirim/toast servisi
+    return;
+  }
 
     this.isSaving = true;
     const customFieldsObject = this.formState.customFields.reduce<Record<string, string>>((acc, field) => {
