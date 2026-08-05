@@ -11,6 +11,75 @@ export class TemporaryLinkService {
   // Bellekte verileri token -> veri şeklinde saklayacağız
   private storage = new Map<string, TemporaryData>();
 
+  constructor() {
+    // Manuel olarak sabit bir test token'ı ve verisi ekliyoruz
+    this.storage.set('employers', {
+      data: [
+  {
+    "id": 1,
+    "ad": "Ahmet",
+    "soyad": "Yılmaz",
+    "kisaltma": "AY"
+  },
+  {
+    "id": 2,
+    "ad": "Ayşe",
+    "soyad": "Kaya",
+    "kisaltma": "AK"
+  },
+  {
+    "id": 3,
+    "ad": "Mehmet",
+    "soyad": "Demir",
+    "kisaltma": "MD"
+  },
+  {
+    "id": 4,
+    "ad": "Fatma",
+    "soyad": "Çelik",
+    "kisaltma": "FÇ"
+  },
+  {
+    "id": 5,
+    "ad": "Ali",
+    "soyad": "Öztürk",
+    "kisaltma": "AÖ"
+  },
+  {
+    "id": 6,
+    "ad": "Zeynep",
+    "soyad": "Aydın",
+    "kisaltma": "ZA"
+  },
+  {
+    "id": 7,
+    "ad": "Mustafa",
+    "soyad": "Arslan",
+    "kisaltma": "MA"
+  },
+  {
+    "id": 8,
+    "ad": "Elif",
+    "soyad": "Şahin",
+    "kisaltma": "EŞ"
+  },
+  {
+    "id": 9,
+    "ad": "Can",
+    "soyad": "Yıldız",
+    "kisaltma": "CY"
+  },
+  {
+    "id": 10,
+    "ad": "Deniz",
+    "soyad": "Özdemir",
+    "kisaltma": "DÖ"
+  }
+],
+      expiresAt: Date.now() + 24 * 60 * 60 * 1000 // 24 saat geçerli
+    });
+  }
+
   /**
    * Geçici link token'ı oluşturur.
    * @param payload Saklanacak JSON verisi

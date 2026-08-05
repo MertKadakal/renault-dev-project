@@ -1,4 +1,5 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 import { ChangeDetectorRef, Component, Inject, OnInit, PLATFORM_ID } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -45,11 +46,14 @@ export class DashboardComponent implements OnInit {
   isSaving = false;
   searchField: string = 'all';
   currentUser: { username: string; name: string; role?: string } | null = null;
+  employerOptions: string[] = [];
   readonly textLimit: number = 30;
-
+  viewMode: 'grid' | 'table' = 'grid';
+  
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
       this.fetchProjects();
+      this.fetchEmployerTempData();
     }
 
     this.currentUser = this.authService.getUser();
@@ -59,13 +63,37 @@ export class DashboardComponent implements OnInit {
     private projectService: ProjectService,
     private authService: AuthService,
     private router: Router,
+    private http: HttpClient,
     @Inject(PLATFORM_ID) private platformId: Object,
     private cdr: ChangeDetectorRef
   ) {
     this.role = this.authService.getRole() ?? this.router.getCurrentNavigation()?.extras?.state?.['role'] ?? null;
   }
 
-  viewMode: 'grid' | 'table' = 'grid';
+  generateAndLogTempLink(projectData?: any): void {
+    // Gönderilecek JSON verisini belirliyoruz (parametre verilmezse mevcut projeleri yolla)
+    const payloadToShare = projectData || this.projects;
+
+    const body = {
+      payload: payloadToShare,
+      ttlSeconds: 600 // 10 dakika geçerli
+    };
+
+    this.http.post('http://localhost:3000/api/temp-link/generate', body).subscribe({
+      next: (response: any) => {
+        console.log('--- GEÇİCİ LİNK OLUŞTURULDU ---');
+        console.log('Gelen Token:', response.token);
+        console.log('Son Kullanma Tarihi:', response.expiresAt);
+        console.log('Paylaşılabilir Link:', response.shareableUrl);
+        console.log('---------------------------------');
+      },
+      error: (err) => {
+  console.error('Geçici link oluşturulurken hata oluştu:', err);
+  console.log('Hata Kodu (Status):', err.status);
+  console.log('Hata Detayı:', err.error);
+}
+    });
+  }
 
   // Görünüm modunu değiştiren fonksiyon
   setViewMode(mode: 'grid' | 'table'): void {
@@ -106,6 +134,19 @@ export class DashboardComponent implements OnInit {
     });
   }
 
+  fetchEmployerTempData(): void {
+    this.http.get<Array<{ id: number; ad: string; soyad: string; kisaltma: string }>>('http://localhost:3000/api/temp-link/employers').subscribe({
+      next: (data) => {
+        console.log('--- EMPLOYERS VERİSİ ---');
+        console.log(data);
+        console.log('-------------------------');
+        this.employerOptions = data.map((item) => item.ad + ' ' + item.soyad);
+      },
+      error: (error) => {
+        console.error('Employers verisi alınırken hata oluştu:', error);
+      }
+    });
+  }
 
   isAdmin(): boolean {
     return this.role === 'admin';

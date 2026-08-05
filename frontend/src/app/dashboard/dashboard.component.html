@@ -1,6 +1,9 @@
 <div class="dashboard-shell">
   <section class="hero-card" style="display: flex; align-items: center; justify-content: space-between;">
 
+
+<!-- Ya da listedeki tek bir proje kartı/satırı için tıklanırsa -->
+<!-- <button (click)="generateAndLogTempLink(project)">Bu Projeyi Paylaş</button> -->
   <!-- SOL KISIM: Başlıklar -->
   <div class="hero-title">
     <p class="eyebrow">Oyak Renault</p>
@@ -261,7 +264,7 @@
       </label>
 
       <label>
-        Sektörlük
+        Direktörlük
         <input [(ngModel)]="formState.sektorluk" />
       </label>
 
@@ -354,12 +357,16 @@
       </label>
 
       <label>
-        DE sorumlu
-        <input [(ngModel)]="formState.deSorumlu" />
+        Dev
+        <select [(ngModel)]="formState.deSorumlu">
+          <option *ngFor="let employer of employerOptions" [value]="employer">
+            {{ employer }}
+          </option>
+        </select>
       </label>
 
       <label>
-        ST sorumlu
+        SLA
         <input [(ngModel)]="formState.stSorumlu" />
       </label>
 

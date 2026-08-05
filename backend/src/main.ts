@@ -7,10 +7,11 @@ async function bootstrap() {
   // Frontend'den gelen isteklere izin ver
   app.enableCors({
     origin: 'http://localhost:4200',
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
 
-  //app.setGlobalPrefix('api'); // Tüm API endpoint'leri /api ile başlar
+  app.setGlobalPrefix('api'); // Tüm API endpoint'leri /api ile başlar
   await app.listen(3000);
 }
 bootstrap();

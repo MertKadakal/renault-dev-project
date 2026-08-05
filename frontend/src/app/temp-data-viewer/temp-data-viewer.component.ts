@@ -32,12 +32,13 @@ export class TempDataViewerComponent implements OnInit {
   }
 
   private fetchData(token: string): void {
-    this.http.get(`http://localhost:3000/temp-link/${token}`).subscribe({
+    this.http.get(`http://localhost:3000/api/temp-link/${token}`).subscribe({
       next: (response) => {
         this.jsonData.set(response);
         this.loading.set(false);
       },
       error: (err) => {
+        console.error('API İsteği Hatası:', err);
         if (err.status === 410) {
           this.errorMessage.set('Bu geçici linkin süresi dolmuş.');
         } else {
