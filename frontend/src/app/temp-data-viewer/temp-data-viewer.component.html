@@ -1,0 +1,17 @@
+<div style="padding: 20px; max-width: 800px; margin: 0 auto;">
+  <h2>Geçici Veri Görüntüleyici</h2>
+
+  @if (loading()) {
+    <p>Veri yükleniyor...</p>
+  }
+
+  @if (errorMessage()) {
+    <div style="color: red; padding: 10px; border: 1px solid red; border-radius: 4px;">
+      {{ errorMessage() }}
+    </div>
+  }
+
+  @if (jsonData()) {
+    <pre style="background: #f4f4f4; padding: 15px; border-radius: 6px; overflow-x: auto;"><code>{{ jsonData() | json }}</code></pre>
+  }
+</div>

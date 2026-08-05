@@ -61,7 +61,7 @@ export class LdapService {
     if (!normalizedUsername || !normalizedPass) {
       throw new UnauthorizedException('Kullanıcı adı ve şifre zorunludur');
     }
-
+/*
     const localUsers: LocalUser[] = [
       { username: 'at01093', password: 'admin', role: 'admin', cn: 'abilgilioglu' },
       { username: 'at03178', password: 'admin', role: 'admin', cn: 'ailter' },
@@ -80,7 +80,7 @@ export class LdapService {
         dn: `uid=${localMatch.username},ou=users,dc=sirket,dc=com`,
         role: localMatch.role,
       };
-    }
+    }*/
 
     const config = this.getConfig();
     let lastError: Error | null = null;
