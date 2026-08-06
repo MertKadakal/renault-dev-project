@@ -49,11 +49,15 @@ export class DashboardComponent implements OnInit {
   employerOptions: string[] = [];
   readonly textLimit: number = 30;
   viewMode: 'grid' | 'table' = 'grid';
+  employees: any[] = [];
+  isLoadingEmployees = false;
+  hasEmployeeError = false;
   
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
       this.fetchProjects();
       this.fetchEmployerTempData();
+      this.fetchEmployees();
     }
 
     this.currentUser = this.authService.getUser();
@@ -113,7 +117,24 @@ export class DashboardComponent implements OnInit {
     this.isProfileOpen = false;
   }
 
-  
+  fetchEmployees(): void {
+    this.isLoadingEmployees = true;
+    this.hasEmployeeError = false;
+
+    // NestJS proxy endpoint'inizin adresi (NestJS tarafında oluşturduğunuz route)
+    this.http.get<any[]>('http://localhost:3000/api/employees').subscribe({
+      next: (data) => {
+        this.employees = Array.isArray(data) ? data : [];
+        this.isLoadingEmployees = false;
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        this.isLoadingEmployees = false;
+        this.hasEmployeeError = true;
+        console.error('Çalışan verileri çekilirken hata oluştu!', error);
+      }
+    });
+  }
 
   fetchProjects(): void {
     this.isLoading = true;

@@ -359,8 +359,10 @@
       <label>
         Dev
         <select [(ngModel)]="formState.deSorumlu">
-          <option *ngFor="let employer of employerOptions" [value]="employer">
-            {{ employer }}
+          <option value="">Seçiniz</option>
+          <!-- Humanist API'sinden dönen property isimlerine göre (örn: firstName / lastName veya ad / soyad) -->
+          <option *ngFor="let emp of employees" [value]="(emp.Name) + ' ' + (emp.Surname)">
+            {{ emp.Name }} {{ emp.Surname }}
           </option>
         </select>
       </label>

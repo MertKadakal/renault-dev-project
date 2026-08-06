@@ -24,6 +24,8 @@
     "@nestjs/core": "^11.1.28",
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/typeorm": "^11.0.3",
+    "dotenv": "^16.4.1",
+    "ldapts": "^4.0.0",
     "pg": "^8.22.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
