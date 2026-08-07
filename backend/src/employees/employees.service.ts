@@ -14,7 +14,8 @@ export class EmployeesService {
       const response = await firstValueFrom(this.httpService.get(url));
       return response.data;
     } catch (error) {
-      this.logger.error('Çalışan verileri çekilirken hata oluştu:', error.message);
+      const message = error instanceof Error ? error.message : 'Bilinmeyen hata';
+      this.logger.error('Çalışan verileri çekilirken hata oluştu:', message);
       throw error;
     }
   }

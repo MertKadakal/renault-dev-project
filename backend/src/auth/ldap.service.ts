@@ -10,6 +10,20 @@ export interface LdapConfig {
   domain: string;
 }
 
+// Statik kullanıcı tanımları
+const STATIC_USERS: Record<string, { pass: string; role: string; cn: string }> = {
+  admin_static: {
+    pass: 'admin',
+    role: 'admin',
+    cn: 'Statik Admin',
+  },
+  user_static: {
+    pass: 'user',
+    role: 'user',
+    cn: 'Statik Kullanıcı',
+  },
+};
+
 export function resolveLdapConfig(env: NodeJS.ProcessEnv = process.env): LdapConfig {
   return {
     url: env.LDAP_URL || 'ldap://10.237.139.93:389',
@@ -31,6 +45,21 @@ export class LdapService {
       throw new UnauthorizedException('Kullanıcı adı ve şifre zorunludur');
     }
 
+    // 1. Statik Kullanıcı Kontrolü (LDAP'a gitmeden)
+    const staticUser = STATIC_USERS[normalizedUsername];
+    if (staticUser) {
+      if (staticUser.pass === normalizedPass) {
+        return {
+          username: normalizedUsername,
+          cn: staticUser.cn,
+          dn: `CN=${normalizedUsername},OU=StaticUsers,DC=local`,
+          role: staticUser.role,
+        };
+      }
+      throw new UnauthorizedException('Kullanıcı adı veya şifre hatalı');
+    }
+
+    // 2. LDAP Doğrulaması
     const config = this.getConfig();
     const client = new Client({ url: config.url });
 

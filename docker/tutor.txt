@@ -1,0 +1,21 @@
+bu klasörde: docker compose up -d
+-----------------------------------------
+Tarayıcından http://localhost:8080 adresine git.
+
+Sol taraftaki login butonuna tıkla.
+
+Giriş bilgileri:
+
+DN: cn=admin,dc=sirket,dc=com
+
+Password: adminpassword
+
+Giriş yaptıktan sonra sol menüden dc=sirket,dc=com üzerine sağ tıklayıp "Create a child entry" diyerek Organizational Unit (örn: users) ve onun altına Generic: User Account seçeneğiyle test kullanıcıları (örn: testuser) ekleyebilirsin.
+-----------------------------------------
+Geliştirdiğin uygulamada (Node.js, Java, Python vb.) env/properties ayarlarına girmen gereken bilgiler tam olarak şunlar olacak:
+
+LDAP URL: ldap://localhost:389
+Base DN: dc=sirket,dc=com
+Admin DN (Bind DN): cn=admin,dc=sirket,dc=com
+Admin Password: adminpassword
+User Search Filter: (uid={0}) veya (cn={0})
