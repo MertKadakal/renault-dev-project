@@ -24,14 +24,6 @@ ng serve --open
 
 ---
 
-### 2. Docker ile Çalıştırma
-```bash
-cd docker
-docker compose up -d
-```
-
----
-
 ## Veritabanı Bilgileri (PostgreSQL)
 
 Uygulamanın çalışabilmesi için bir **PostgreSQL** sunucusu gereklidir. Bağlantı ayarları şu şekildedir:
