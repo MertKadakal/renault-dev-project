@@ -1,0 +1,30 @@
+@font-face {
+  font-family: 'Regular';
+  src: url('./assets/fonts/RenaultGroup-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Bold';
+  src: url('./assets/fonts/RenaultGroup-Bold.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --font-body: 'Regular', sans-serif;
+  --font-heading: 'Bold', Georgia, serif;
+}
+
+/* Genel Gövde Metinleri */
+body {
+  font-family: var(--font-body);
+}
+
+/* Başlıklar İçin Yeni Font */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+}

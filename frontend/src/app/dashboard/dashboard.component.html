@@ -1,0 +1,401 @@
+<div class="dashboard-shell">
+  <section class="hero-card" style="display: flex; align-items: center; justify-content: space-between;">
+
+
+<!-- Ya da listedeki tek bir proje kartı/satırı için tıklanırsa -->
+<!-- <button (click)="generateAndLogTempLink(project)">Bu Projeyi Paylaş</button> -->
+  <!-- SOL KISIM: Başlıklar -->
+  <div class="hero-title">
+    <p class="eyebrow">Oyak Renault</p>
+    <h2>Projeler</h2>
+    <p class="subtitle">Filtrele, incele, yönet</p>
+  </div>
+
+  <!-- SAĞ KISIM: Logo -->
+  <div class="hero-brand">
+    <img 
+      src="../../assets/images/oyak-renault-dark.png"
+      alt="Oyak Renault Logo" 
+      class="hero-logo"
+      style="height: 50px; width: auto; object-fit: contain;" 
+    />
+  </div>
+
+</section>
+  <section class="hero-card" style="display: flex; align-items: center; justify-content: space-between; gap: 16px;">
+  
+  <!-- SOL KISIM: Filtreler (Arama Grubu) -->
+  <div class="search-group" style="display: flex; gap: 8px; align-items: center;">
+    <select 
+      [(ngModel)]="searchField" 
+      (ngModelChange)="onSearchChange()"
+      style="padding: 8px; border-radius: 6px; border: 1px solid #ccc; background: white;">
+      <option value="all">Tüm Alanlar</option>
+      <option value="uygulamaAdi">Uygulama Adı</option>
+      <option value="sektorluk">Sektör</option>
+      <option value="frontend">Frontend</option>
+      <option value="backend">Backend</option>
+      <option value="databaseType">Veritabanı</option>
+      <option value="platform">Platform</option>
+      <option value="deSorumlu">DE Sorumlu</option>
+      <option value="stSorumlu">ST Sorumlu</option>
+    </select>
+
+    <label class="search-box hero-brand">
+      <span>🔍</span>
+      <input
+        type="text"
+        [placeholder]="searchField === 'all' ? 'Tüm alanlarda ara...' : 'Ara...'"
+        [(ngModel)]="searchTerm"
+        (ngModelChange)="onSearchChange()"
+      />
+    </label>
+  </div>
+
+  <!-- SAĞ KISIM: Aksiyon Butonları -->
+  <div class="action-buttons" style="display: flex; gap: 8px; align-items: center;">
+    <button *ngIf="isAdmin()" class="primary-btn" type="button" (click)="addProject()">
+      + Yeni proje
+    </button>
+
+    <!-- Profil Butonu -->
+    <button class="secondary-btn profile-btn" type="button" (click)="openProfile()">
+      <span class="icon">👤</span>
+    </button>
+
+    <!-- Çıkış Butonu -->
+    <button class="danger-btn logout-btn" type="button" (click)="onLogout()">
+      ⍈
+    </button>
+  </div>
+
+</section>
+
+  <section class="project-list-card">
+    <div class="list-header" style="display: flex; justify-content: space-between; align-items: center;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <h3>Aktif projeler</h3>
+        <span class="pill">{{ filteredProjects.length }} kayıt</span>
+      </div>
+
+      <!-- GÖRÜNÜM DEĞİŞTİRME BUTONLARI -->
+      <div class="view-toggle-btns" style="display: flex; gap: 4px;">
+        <button 
+          type="button" 
+          class="secondary-btn" 
+          [class.active]="viewMode === 'grid'"
+          (click)="setViewMode('grid')"
+          title="Kart Görünümü">
+          ▦ Kart
+        </button>
+        <button 
+          type="button" 
+          class="secondary-btn" 
+          [class.active]="viewMode === 'table'"
+          (click)="setViewMode('table')"
+          title="Liste Görünümü">
+          ☰ Liste
+        </button>
+      </div>
+    </div>
+
+    <div *ngIf="isLoading" class="state-box loading">Yükleniyor...</div>
+    <div *ngIf="!isLoading && hasError" class="state-box error">Projeler yüklenirken bir hata oluştu.</div>
+
+    <div *ngIf="!isLoading && !hasError && projects.length > 0 && filteredProjects.length === 0" class="state-box empty">
+      Aramanıza uygun proje bulunamadı.
+    </div>
+
+    <div *ngIf="!isLoading && !hasError && projects.length === 0" class="state-box empty">
+      Henüz proje eklenmemiş.
+    </div>
+
+    <!-- 1. KART (GRID) GÖRÜNÜMÜ -->
+    <div *ngIf="!isLoading && !hasError && filteredProjects.length > 0 && viewMode === 'grid'" class="project-grid">
+      <article class="project-card" *ngFor="let project of filteredProjects">
+        <div class="card-top">
+          <!-- Uygulama Adı: Dynamic Limit -->
+          <h4 [title]="project.uygulamaAdi">
+            {{ 
+              project.uygulamaAdi.length > textLimit 
+                ? (project.uygulamaAdi | slice:0:textLimit) + '...' 
+                : project.uygulamaAdi 
+            }}
+          </h4>
+          <span class="status-badge">{{ project.aktifPasif || 'Belirtilmedi' }}</span>
+        </div>
+
+        <!-- Açıklama: Dynamic Limit -->
+        <p class="description" [title]="project.tanimUygulamaAciklama || 'Açıklama bulunmuyor.'">
+          <ng-container *ngIf="project.tanimUygulamaAciklama; else noDesc">
+            {{ 
+              project.tanimUygulamaAciklama.length > textLimit 
+                ? (project.tanimUygulamaAciklama | slice:0:textLimit) + '...' 
+                : project.tanimUygulamaAciklama 
+            }}
+          </ng-container>
+          <ng-template #noDesc>Açıklama bulunmuyor.</ng-template>
+        </p>
+
+        <div class="meta-row">
+          <span>Frontend: {{ project.frontend || '—' }}</span>
+          <span>Backend: {{ project.backend || '—' }}</span>
+        </div>
+
+        <div class="custom-fields-list" *ngIf="project.customFields && (project.customFields | keyvalue).length > 0">
+          <h5>Özel alanlar</h5>
+          <ul>
+            <li *ngFor="let entry of project.customFields | keyvalue">
+              <strong>{{ entry.key }}</strong>: {{ entry.value }}
+            </li>
+          </ul>
+        </div>
+
+        <div class="card-actions" *ngIf="isAdmin()">
+          <button class="secondary-btn" type="button" (click)="editProject(project)">Düzenle</button>
+          <button class="danger-btn" type="button" (click)="deleteProject(project.id)">Aktif/Pasif</button>
+        </div>
+      </article>
+    </div>
+
+    <!-- 2. LİSTE (TABLO) GÖRÜNÜMÜ -->
+    <div *ngIf="!isLoading && !hasError && filteredProjects.length > 0 && viewMode === 'table'" class="project-table-container">
+      <table class="project-table" style="width: 100%; border-collapse: collapse; margin-top: 16px;">
+        <thead>
+          <tr style="border-bottom: 2px solid #ddd; text-align: left;">
+            <th style="padding: 10px;">Uygulama Adı</th>
+            <th style="padding: 10px;">Durum</th>
+            <th style="padding: 10px;">Açıklama</th>
+            <th style="padding: 10px;">Frontend</th>
+            <th style="padding: 10px;">Backend</th>
+            <th style="padding: 10px;" *ngIf="isAdmin()">İşlemler</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let project of filteredProjects" style="border-bottom: 1px solid #eee;">
+            <!-- Uygulama Adı -->
+            <td style="padding: 10px; font-weight: bold;" [title]="project.uygulamaAdi">
+              {{ 
+                project.uygulamaAdi.length > textLimit 
+                  ? (project.uygulamaAdi | slice:0:textLimit) + '...' 
+                  : project.uygulamaAdi 
+              }}
+            </td>
+
+            <td style="padding: 10px;">
+              <span class="status-badge">{{ project.aktifPasif || '—' }}</span>
+            </td>
+
+            <!-- Açıklama -->
+            <td style="padding: 10px;" [title]="project.tanimUygulamaAciklama || ''">
+              <ng-container *ngIf="project.tanimUygulamaAciklama; else noDesc">
+                {{ 
+                  project.tanimUygulamaAciklama.length > textLimit
+                    ? (project.tanimUygulamaAciklama | slice:0:textLimit) + '...' 
+                    : project.tanimUygulamaAciklama 
+                }}
+              </ng-container>
+              <ng-template #noDesc>—</ng-template>
+            </td>
+
+            <td style="padding: 10px;">{{ project.frontend || '—' }}</td>
+            <td style="padding: 10px;">{{ project.backend || '—' }}</td>
+
+            <td style="padding: 10px;" *ngIf="isAdmin()">
+              <div style="display: flex; gap: 6px;">
+                <button class="secondary-btn" type="button" (click)="editProject(project)">Düzenle</button>
+                <button class="danger-btn" type="button" (click)="deleteProject(project.id)">Aktif/Pasif</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </section>
+</div>
+
+<!-- PROFİL POP-UP / MODAL -->
+<div class="modal-backdrop" *ngIf="isProfileOpen" (click)="closeProfile()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Kullanıcı Profili</h3>
+      <button class="icon-btn" type="button" (click)="closeProfile()">&times;</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="info-group">
+        <strong>IPN:</strong>
+        <p>{{ currentUser?.username || '—' }}</p>
+      </div>
+
+      <div class="info-group">
+        <strong>Statü:</strong>
+        
+        <p *ngIf="currentUser?.role; else noRole">
+          <ng-container *ngIf="currentUser.role === 'admin'">Admin Kullanıcı</ng-container>
+          <ng-container *ngIf="currentUser.role === 'user'">Standart Kullanıcı</ng-container>
+        </p>
+
+        <ng-template #noRole>
+          <p>Belirtilmedi</p>
+        </ng-template>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="secondary-btn" type="button" (click)="closeProfile()">Kapat</button>
+    </div>
+  </div>
+</div>
+
+<!-- PROJE DÜZENLEME / EKLEME MODALI -->
+<div class="modal-backdrop" *ngIf="showEditor">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3>{{ editingProject ? 'Projeyi düzenle' : 'Yeni proje ekle' }}</h3>
+      <button class="icon-btn" type="button" (click)="closeEditor()">×</button>
+    </div>
+
+    <div class="modal-body">
+      <label>
+        Uygulama adı
+        <input [(ngModel)]="formState.uygulamaAdi" />
+      </label>
+
+      <label>
+        Direktörlük
+        <input [(ngModel)]="formState.sektorluk" />
+      </label>
+
+      <label>
+        Açıklama
+        <textarea [(ngModel)]="formState.tanimUygulamaAciklama"></textarea>
+      </label>
+
+      <label>
+        Canlı URL
+        <input [(ngModel)]="formState.canliUrl" />
+      </label>
+
+      <label>
+        Test URL
+        <input [(ngModel)]="formState.testUrl" />
+      </label>
+
+      <label>
+        Durum
+        <select [(ngModel)]="formState.aktifPasif">
+          <option value="A">A</option>
+          <option value="P">P</option>
+        </select>
+      </label>
+
+      <label>
+        Frontend
+        <select [(ngModel)]="formState.frontend">
+          <option value="React">React</option>
+          <option value="Angular">Angular</option>
+          <option value="Vue.js">Vue.js</option>
+          <option value="Next.js">Next.js</option>
+          <option value="Nuxt.js">Nuxt.js</option>
+          <option value="Svelte">Svelte</option>
+          <option value="SvelteKit">SvelteKit</option>
+          <option value="SolidJS">SolidJS</option>
+          <option value="HTML/CSS/JS">HTML / CSS / JavaScript</option>
+          <option value="Diğer">Diğer</option>
+        </select>
+      </label>
+
+      <label>
+        Frontend sürümü
+        <input [(ngModel)]="formState.feVersion" />
+      </label>
+
+      <label>
+        Backend
+        <select [(ngModel)]="formState.backend">
+          <option value="NestJS">NestJS</option>
+          <option value="Express.js">Express.js (Node.js)</option>
+          <option value="Spring Boot">Spring Boot (Java)</option>
+          <option value=".NET Core">.NET Core / C#</option>
+          <option value="Django">Django (Python)</option>
+          <option value="FastAPI">FastAPI (Python)</option>
+          <option value="Flask">Flask (Python)</option>
+          <option value="Laravel">Laravel (PHP)</option>
+          <option value="Go">Go (Golang)</option>
+          <option value="Ruby on Rails">Ruby on Rails</option>
+          <option value="Diğer">Diğer</option>
+        </select>
+      </label>
+
+      <label>
+        Backend sürümü
+        <input [(ngModel)]="formState.beVersion" />
+      </label>
+
+      <label>
+        Veritabanı türü
+        <select [(ngModel)]="formState.databaseType">
+          <option value="PostgreSQL">PostgreSQL</option>
+          <option value="MySQL">MySQL</option>
+          <option value="MSSQL">MS SQL Server</option>
+          <option value="MongoDB">MongoDB</option>
+          <option value="Oracle">Oracle DB</option>
+          <option value="SQLite">SQLite</option>
+          <option value="Redis">Redis</option>
+          <option value="Firebase Firestore">Firebase Firestore</option>
+          <option value="Elasticsearch">Elasticsearch</option>
+          <option value="Cassandra">Apache Cassandra</option>
+          <option value="Diğer">Diğer</option>
+        </select>
+      </label>
+
+      <label>
+        Platform
+        <input [(ngModel)]="formState.platform" />
+      </label>
+
+      <label>
+        Dev
+        <select [(ngModel)]="formState.deSorumlu">
+          <option value="">Seçiniz</option>
+          <!-- Humanist API'sinden dönen property isimlerine göre (örn: firstName / lastName veya ad / soyad) -->
+          <option *ngFor="let emp of employees" [value]="(emp.Name) + ' ' + (emp.Surname)">
+            {{ emp.Name }} {{ emp.Surname }}
+          </option>
+        </select>
+      </label>
+
+      <label>
+        SLA
+        <input [(ngModel)]="formState.stSorumlu" />
+      </label>
+
+      <label>
+        Karmaşıklık
+        <input [(ngModel)]="formState.complexity" />
+      </label>
+
+      <div class="custom-fields">
+        <div class="custom-fields-header">
+          <h4>Özel alanlar</h4>
+          <button class="secondary-btn" type="button" (click)="addCustomField()">+ Ekle</button>
+        </div>
+
+        <div class="custom-field-row" *ngFor="let field of formState.customFields; let i = index">
+          <input placeholder="Alan adı" [(ngModel)]="field.key" />
+          <input placeholder="Değer" [(ngModel)]="field.value" />
+          <button class="danger-btn" type="button" (click)="removeCustomField(i)">Kaldır</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="secondary-btn" type="button" (click)="closeEditor()">İptal</button>
+      <button class="primary-btn" type="button" (click)="saveProject()" [disabled]="isSaving">
+        {{ isSaving ? 'Kaydediliyor...' : 'Kaydet' }}
+      </button>
+    </div>
+  </div>
+</div>

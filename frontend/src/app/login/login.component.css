@@ -1,0 +1,93 @@
+/* Tarayıcının varsayılan dış/iç boşluklarını sıfırla */
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden; /* Gerekirse gereksiz kaydırma çubuklarını engeller */
+}
+
+:host {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  
+  /* Ekranı tam kaplaması için */
+  width: 100vw;
+  height: 100vh;
+  min-height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  
+  /* Arka plan resmi, %50 karartma filtresi ve ekranı tam doldurma */
+  background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), var(--bg-image);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  
+  box-sizing: border-border;
+}
+
+/* Form Kartı */
+.login-container {
+  background: rgba(255, 255, 255, 0.95);
+  padding: 30px 40px;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+  z-index: 1; /* Formun üstte kalmasını garanti eder */
+}
+
+.logo-container {
+  margin-bottom: 20px;
+}
+
+.login-logo {
+  max-width: 150px;
+  height: auto;
+  object-fit: contain;
+}
+
+.login-container h2 {
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.login-container form div {
+  margin-bottom: 16px;
+  text-align: left;
+}
+
+.login-container label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+  color: #555;
+}
+
+.login-container input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-sizing: border-box;
+}
+
+.login-container button {
+  width: 100%;
+  padding: 12px;
+  background-color: #000;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.login-container button:hover {
+  background-color: #333;
+}
