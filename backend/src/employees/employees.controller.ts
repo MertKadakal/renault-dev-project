@@ -7,6 +7,6 @@ export class EmployeesController {
 
   @Get()
   async getEmployees() {
-    return this.employeesService.getEmployees();
+    return await this.employeesService.getEmployees();
   }
 }

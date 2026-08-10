@@ -12,13 +12,13 @@ export interface LdapConfig {
 
 // Statik kullanıcı tanımları
 const STATIC_USERS: Record<string, { pass: string; role: string; cn: string }> = {
-  admin_static: {
-    pass: 'admin',
+  admin: {
+    pass: 'admin123',
     role: 'admin',
     cn: 'Statik Admin',
   },
-  user_static: {
-    pass: 'user',
+  user: {
+    pass: 'user123',
     role: 'user',
     cn: 'Statik Kullanıcı',
   },

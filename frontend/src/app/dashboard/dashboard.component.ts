@@ -6,6 +6,7 @@ import { Router } from '@angular/router';
 import { Project } from '../models/project';
 import { AuthService } from '../services/auth.service';
 import { ProjectService } from '../services/project.service';
+import { EmployeeService } from '../services/employee.service';
 
 interface ProjectFormState {
   uygulamaAdi?: string;
@@ -56,7 +57,6 @@ export class DashboardComponent implements OnInit {
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
       this.fetchProjects();
-      this.fetchEmployerTempData();
       this.fetchEmployees();
     }
 
@@ -68,35 +68,11 @@ export class DashboardComponent implements OnInit {
     private authService: AuthService,
     private router: Router,
     private http: HttpClient,
+    private employeeService: EmployeeService,
     @Inject(PLATFORM_ID) private platformId: Object,
     private cdr: ChangeDetectorRef
   ) {
     this.role = this.authService.getRole() ?? this.router.getCurrentNavigation()?.extras?.state?.['role'] ?? null;
-  }
-
-  generateAndLogTempLink(projectData?: any): void {
-    // Gönderilecek JSON verisini belirliyoruz (parametre verilmezse mevcut projeleri yolla)
-    const payloadToShare = projectData || this.projects;
-
-    const body = {
-      payload: payloadToShare,
-      ttlSeconds: 600 // 10 dakika geçerli
-    };
-
-    this.http.post('http://localhost:3000/api/temp-link/generate', body).subscribe({
-      next: (response: any) => {
-        console.log('--- GEÇİCİ LİNK OLUŞTURULDU ---');
-        console.log('Gelen Token:', response.token);
-        console.log('Son Kullanma Tarihi:', response.expiresAt);
-        console.log('Paylaşılabilir Link:', response.shareableUrl);
-        console.log('---------------------------------');
-      },
-      error: (err) => {
-  console.error('Geçici link oluşturulurken hata oluştu:', err);
-  console.log('Hata Kodu (Status):', err.status);
-  console.log('Hata Detayı:', err.error);
-}
-    });
   }
 
   // Görünüm modunu değiştiren fonksiyon
@@ -117,23 +93,20 @@ export class DashboardComponent implements OnInit {
     this.isProfileOpen = false;
   }
 
-  fetchEmployees(): void {
+  async fetchEmployees(): Promise<void> {
     this.isLoadingEmployees = true;
     this.hasEmployeeError = false;
 
-    // NestJS proxy endpoint'inizin adresi (NestJS tarafında oluşturduğunuz route)
-    this.http.get<any[]>('http://localhost:3000/api/employees').subscribe({
-      next: (data) => {
-        this.employees = Array.isArray(data) ? data : [];
-        this.isLoadingEmployees = false;
-        this.cdr.detectChanges();
-      },
-      error: (error) => {
-        this.isLoadingEmployees = false;
-        this.hasEmployeeError = true;
-        console.error('Çalışan verileri çekilirken hata oluştu!', error);
-      }
-    });
+    try {
+      this.employees = await this.employeeService.getEmployees();
+      this.isLoadingEmployees = false;
+      this.cdr.detectChanges();
+    } catch (error) {
+      this.isLoadingEmployees = false;
+      this.hasEmployeeError = true;
+      console.error('Çalışan verileri çekilirken hata oluştu!', error);
+      this.cdr.detectChanges();
+    }
   }
 
   fetchProjects(): void {
@@ -151,20 +124,6 @@ export class DashboardComponent implements OnInit {
         this.isLoading = false;
         this.hasError = true;
         console.error('Projeler çekilirken hata oluştu!', error);
-      }
-    });
-  }
-
-  fetchEmployerTempData(): void {
-    this.http.get<Array<{ id: number; ad: string; soyad: string; kisaltma: string }>>('http://localhost:3000/api/temp-link/employers').subscribe({
-      next: (data) => {
-        console.log('--- EMPLOYERS VERİSİ ---');
-        console.log(data);
-        console.log('-------------------------');
-        this.employerOptions = data.map((item) => item.ad + ' ' + item.soyad);
-      },
-      error: (error) => {
-        console.error('Employers verisi alınırken hata oluştu:', error);
       }
     });
   }
