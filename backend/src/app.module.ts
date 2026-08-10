@@ -10,17 +10,23 @@ import { ProjectsModule } from './projects/projects.module';
     TypeOrmModule.forRoot({
       type: 'postgres',
 <<<<<<< HEAD
+<<<<<<< HEAD
       host: '10.237.139.133',
       port: 5432,
       username: 'mert',
       password: 'renault_mert',
       database: 'dev_team_apps',
 =======
+=======
+>>>>>>> 6959602e84eb35b5a37ee2f6890111f62c22482e
       host: 'localhost',
       port: 5432,
       username: 'postgres',
       password: 'mert',
       database: 'postgres',
+<<<<<<< HEAD
+>>>>>>> 6959602e84eb35b5a37ee2f6890111f62c22482e
+=======
 >>>>>>> 6959602e84eb35b5a37ee2f6890111f62c22482e
       autoLoadEntities: true,
       synchronize: false,
