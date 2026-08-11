@@ -21,8 +21,8 @@ interface ProjectFormState {
   beVersion?: string | null;
   databaseType?: string;
   platform?: string;
-  deSorumlu?: string;
-  stSorumlu?: string | null;
+  deSorumlu?: string[];
+  sla?: string | null;
   complexity?: string;
   customFields: Array<{ key: string; value: string }>;
 }
@@ -44,8 +44,11 @@ export class DashboardComponent implements OnInit {
   showEditor = false;
   editingProject: Project | null = null;
   formState: ProjectFormState = this.createEmptyFormState();
+  originalFormState: ProjectFormState | null = null;
   isSaving = false;
   searchField: string = 'all';
+  sortField: string = '';
+  sortDirection: 'asc' | 'desc' = 'asc';
   currentUser: { username: string; name: string; role?: string } | null = null;
   employerOptions: string[] = [];
   readonly textLimit: number = 30;
@@ -116,7 +119,7 @@ export class DashboardComponent implements OnInit {
     this.projectService.getProjects().subscribe({
       next: (data) => {
         this.projects = Array.isArray(data) ? data : [];
-        this.filteredProjects = [...this.projects];
+        this.applyFiltersAndSorting();
         this.isLoading = false;
         this.cdr.detectChanges();
       },
@@ -146,8 +149,8 @@ export class DashboardComponent implements OnInit {
       beVersion: '',
       databaseType: '',
       platform: '',
-      deSorumlu: '',
-      stSorumlu: '',
+      deSorumlu: [],
+      sla: '',
       complexity: '',
       customFields: [],
     };
@@ -160,6 +163,7 @@ export class DashboardComponent implements OnInit {
 
     this.editingProject = null;
     this.formState = this.createEmptyFormState();
+    this.originalFormState = this.cloneFormState(this.formState);
     this.showEditor = true;
   }
 
@@ -170,16 +174,28 @@ export class DashboardComponent implements OnInit {
 
     this.editingProject = project;
     const customFields = project.customFields ? Object.entries(project.customFields).map(([key, value]) => ({ key, value })) : [];
+    const deSorumluArray = project.deSorumlu ? project.deSorumlu.split(',').map(s => s.trim()).filter(Boolean) : [];
     this.formState = {
       ...project,
+      deSorumlu: deSorumluArray,
       customFields,
-    };
+    } as any;
+    this.originalFormState = this.cloneFormState(this.formState);
     this.showEditor = true;
   }
 
   closeEditor(): void {
+    if (this.editingProject && this.isFormDirty()) {
+      const confirmed = confirm('Değişiklikleri kaydetmek ister misiniz?');
+      if (confirmed) {
+        this.saveProject();
+        return;
+      }
+    }
+
     this.showEditor = false;
     this.editingProject = null;
+    this.originalFormState = null;
     this.formState = this.createEmptyFormState();
   }
 
@@ -189,6 +205,20 @@ export class DashboardComponent implements OnInit {
 
   removeCustomField(index: number): void {
     this.formState.customFields = this.formState.customFields.filter((_, itemIndex) => itemIndex !== index);
+  }
+
+  cloneFormState(state: ProjectFormState): ProjectFormState {
+    return JSON.parse(JSON.stringify(state));
+  }
+
+  isFormDirty(): boolean {
+    if (!this.originalFormState) {
+      return false;
+    }
+
+    const currentValue = JSON.stringify(this.cloneFormState(this.formState));
+    const originalValue = JSON.stringify(this.cloneFormState(this.originalFormState));
+    return currentValue !== originalValue;
   }
 
   saveProject(): void {
@@ -209,8 +239,12 @@ export class DashboardComponent implements OnInit {
       return acc;
     }, {});
 
+    // Convert multi-select developers back to comma-separated string for API
+    const deSorumluValue = Array.isArray(this.formState.deSorumlu) ? this.formState.deSorumlu.join(', ') : (this.formState.deSorumlu as any);
+
     const payload = {
       ...this.formState,
+      deSorumlu: deSorumluValue,
       customFields: customFieldsObject,
     };
 
@@ -223,6 +257,7 @@ export class DashboardComponent implements OnInit {
         this.isSaving = false;
         this.showEditor = false;
         this.editingProject = null;
+        this.originalFormState = null;
         this.formState = this.createEmptyFormState();
         this.fetchProjects();
       },
@@ -231,6 +266,28 @@ export class DashboardComponent implements OnInit {
         console.error('Proje kaydedilirken hata oluştu', error);
       }
     });
+  }
+
+  removeDeveloper(name: string): void {
+    if (!this.formState.deSorumlu) return;
+    this.formState.deSorumlu = this.formState.deSorumlu.filter((n) => n !== name);
+  }
+
+  isDeveloperSelected(name: string): boolean {
+    return !!this.formState.deSorumlu?.includes(name);
+  }
+
+  toggleDeveloper(name: string): void {
+    if (!this.formState.deSorumlu) {
+      this.formState.deSorumlu = [name];
+      return;
+    }
+
+    if (this.formState.deSorumlu.includes(name)) {
+      this.formState.deSorumlu = this.formState.deSorumlu.filter((n) => n !== name);
+    } else {
+      this.formState.deSorumlu = [...this.formState.deSorumlu, name];
+    }
   }
 
   deleteProject(projectId: number): void {
@@ -251,37 +308,83 @@ export class DashboardComponent implements OnInit {
   }
 
   onLogout(): void {
-    this.authService.logout();
+    const confirmed = confirm('Çıkış yapmak istediğinizden emin misiniz?');
+    if (confirmed) {
+      this.authService.logout();
+    }
   }
 
   onSearchChange(): void {
-  const term = this.searchTerm.toLowerCase().trim();
-  
-  // Arama terimi boşsa tüm projeleri göster
-  if (!term) {
-    this.filteredProjects = [...this.projects];
-    return;
+    this.applyFiltersAndSorting();
   }
 
-  this.filteredProjects = this.projects.filter((project) => {
-    if (this.searchField === 'all') {
-      // Tüm alanlarda arama yap
-      return (
-        project.uygulamaAdi?.toLowerCase().includes(term) ||
-        project.sektorluk?.toLowerCase().includes(term) ||
-        project.tanimUygulamaAciklama?.toLowerCase().includes(term) ||
-        project.frontend?.toLowerCase().includes(term) ||
-        project.backend?.toLowerCase().includes(term) ||
-        project.databaseType?.toLowerCase().includes(term) ||
-        project.platform?.toLowerCase().includes(term) ||
-        project.deSorumlu?.toLowerCase().includes(term) ||
-        project.stSorumlu?.toLowerCase().includes(term)
-      );
-    } else {
-      // Sadece seçili alanda arama yap (örn: project['frontend'])
+  onSortChange(): void {
+    this.applyFiltersAndSorting();
+  }
+
+  toggleSortDirection(): void {
+    this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    this.applyFiltersAndSorting();
+  }
+
+  applyFiltersAndSorting(): void {
+    const term = this.searchTerm.toLowerCase().trim();
+
+    this.filteredProjects = this.projects.filter((project) => {
+      if (!term) {
+        return true;
+      }
+
+      if (this.searchField === 'all') {
+        return (
+          project.uygulamaAdi?.toLowerCase().includes(term) ||
+          project.sektorluk?.toLowerCase().includes(term) ||
+          project.tanimUygulamaAciklama?.toLowerCase().includes(term) ||
+          project.frontend?.toLowerCase().includes(term) ||
+          project.backend?.toLowerCase().includes(term) ||
+          project.databaseType?.toLowerCase().includes(term) ||
+          project.platform?.toLowerCase().includes(term) ||
+          project.deSorumlu?.toLowerCase().includes(term) ||
+          project.sla?.toLowerCase().includes(term) ||
+          project.complexity?.toLowerCase().includes(term)
+        );
+      }
+
       const value = (project as any)[this.searchField];
       return value ? value.toString().toLowerCase().includes(term) : false;
+    });
+
+    if (this.sortField) {
+      this.filteredProjects.sort((a, b) => this.compareProjects(a, b, this.sortField));
     }
-  });
-}
+  }
+
+  compareProjects(a: Project, b: Project, field: string): number {
+    const aValue = this.normalizeSortValue((a as any)[field]);
+    const bValue = this.normalizeSortValue((b as any)[field]);
+
+    if (aValue < bValue) {
+      return this.sortDirection === 'asc' ? -1 : 1;
+    }
+    if (aValue > bValue) {
+      return this.sortDirection === 'asc' ? 1 : -1;
+    }
+    return 0;
+  }
+
+  normalizeSortValue(value: unknown): string {
+    if (value === null || value === undefined) {
+      return '';
+    }
+    return String(value).toLowerCase();
+  }
+
+  getCustomFieldsText(project: Project): string {
+    if (!project.customFields) {
+      return '';
+    }
+    return Object.entries(project.customFields)
+      .map(([key, value]) => `${key}: ${value}`)
+      .join(', ');
+  }
 }

@@ -13,7 +13,7 @@ export interface Project {
   databaseType: string;
   platform: string;
   deSorumlu: string;
-  stSorumlu?: string | null;
+  sla?: string | null;
   complexity: string;
   customFields?: Record<string, string>;
   createdAt: string; 

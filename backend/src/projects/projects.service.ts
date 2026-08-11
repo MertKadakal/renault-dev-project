@@ -89,7 +89,7 @@ export class ProjectsService {
       be_version: 'beVersion',
       database_type: 'databaseType',
       de_sorumlu: 'deSorumlu',
-      st_sorumlu: 'stSorumlu',
+      sla: 'sla',
     };
 
     Object.entries(aliases).forEach(([source, target]) => {

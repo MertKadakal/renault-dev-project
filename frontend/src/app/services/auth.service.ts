@@ -43,6 +43,6 @@ export class AuthService {
     localStorage.clear();
 
     // 2. Kullanıcıyı login ekranına yönlendir
-    this.router.navigate(['/login']);
+    this.router.navigate(['/login'], { replaceUrl: true });
   }
 }

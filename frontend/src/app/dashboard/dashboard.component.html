@@ -25,7 +25,7 @@
   <section class="hero-card" style="display: flex; align-items: center; justify-content: space-between; gap: 16px;">
   
   <!-- SOL KISIM: Filtreler (Arama Grubu) -->
-  <div class="search-group" style="display: flex; gap: 8px; align-items: center;">
+  <div class="search-group" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
     <select 
       [(ngModel)]="searchField" 
       (ngModelChange)="onSearchChange()"
@@ -38,18 +38,51 @@
       <option value="databaseType">Veritabanı</option>
       <option value="platform">Platform</option>
       <option value="deSorumlu">DE Sorumlu</option>
-      <option value="stSorumlu">ST Sorumlu</option>
+      <option value="sla">SLA</option>
+      <option value="complexity">Karmaşıklık</option>
     </select>
 
     <label class="search-box hero-brand">
       <span>🔍</span>
       <input
         type="text"
-        [placeholder]="searchField === 'all' ? 'Tüm alanlarda ara...' : 'Ara...'"
+        [placeholder]="searchField === 'all' ? 'Tüm alanlarda ara...' : 'Ara...'
+        "
         [(ngModel)]="searchTerm"
         (ngModelChange)="onSearchChange()"
       />
     </label>
+
+    <label style="display:flex; gap:6px; align-items:center;">
+      <span>Sırala:</span>
+      <select
+        [(ngModel)]="sortField"
+        (ngModelChange)="onSortChange()"
+        style="padding: 8px; border-radius: 6px; border: 1px solid #ccc; background: white;">
+        <option value="">Sıralama yok</option>
+        <option value="uygulamaAdi">Uygulama Adı</option>
+        <option value="sektorluk">Sektör</option>
+        <option value="aktifPasif">Durum</option>
+        <option value="frontend">Frontend</option>
+        <option value="feVersion">Frontend Sürümü</option>
+        <option value="backend">Backend</option>
+        <option value="beVersion">Backend Sürümü</option>
+        <option value="databaseType">Veritabanı</option>
+        <option value="platform">Platform</option>
+        <option value="deSorumlu">DE Sorumlu</option>
+        <option value="sla">SLA</option>
+        <option value="complexity">Karmaşıklık</option>
+      </select>
+    </label>
+
+    <button
+      type="button"
+      class="secondary-btn"
+      (click)="toggleSortDirection()"
+      style="min-width: 52px;"
+      title="Sıralama yönünü değiştir">
+      {{ sortDirection === 'asc' ? 'A⇅' : 'Z⇅' }}
+    </button>
   </div>
 
   <!-- SAĞ KISIM: Aksiyon Butonları -->
@@ -160,56 +193,76 @@
 
     <!-- 2. LİSTE (TABLO) GÖRÜNÜMÜ -->
     <div *ngIf="!isLoading && !hasError && filteredProjects.length > 0 && viewMode === 'table'" class="project-table-container">
-      <table class="project-table" style="width: 100%; border-collapse: collapse; margin-top: 16px;">
-        <thead>
-          <tr style="border-bottom: 2px solid #ddd; text-align: left;">
-            <th style="padding: 10px;">Uygulama Adı</th>
-            <th style="padding: 10px;">Durum</th>
-            <th style="padding: 10px;">Açıklama</th>
-            <th style="padding: 10px;">Frontend</th>
-            <th style="padding: 10px;">Backend</th>
-            <th style="padding: 10px;" *ngIf="isAdmin()">İşlemler</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let project of filteredProjects" style="border-bottom: 1px solid #eee;">
-            <!-- Uygulama Adı -->
-            <td style="padding: 10px; font-weight: bold;" [title]="project.uygulamaAdi">
-              {{ 
-                project.uygulamaAdi.length > textLimit 
-                  ? (project.uygulamaAdi | slice:0:textLimit) + '...' 
-                  : project.uygulamaAdi 
-              }}
-            </td>
-
-            <td style="padding: 10px;">
-              <span class="status-badge">{{ project.aktifPasif || '—' }}</span>
-            </td>
-
-            <!-- Açıklama -->
-            <td style="padding: 10px;" [title]="project.tanimUygulamaAciklama || ''">
-              <ng-container *ngIf="project.tanimUygulamaAciklama; else noDesc">
+      <div class="table-scroll">
+        <table class="project-table" style="width: 100%; border-collapse: collapse; margin-top: 16px; min-width: 1400px;">
+          <thead>
+            <tr style="border-bottom: 2px solid #ddd; text-align: left;">
+              <th style="padding: 10px;">Uygulama Adı</th>
+              <th style="padding: 10px;">Direktörlük</th>
+              <th style="padding: 10px;">Açıklama</th>
+              <th style="padding: 10px;">Canlı URL</th>
+              <th style="padding: 10px;">Test URL</th>
+              <th style="padding: 10px;">Durum</th>
+              <th style="padding: 10px;">Frontend</th>
+              <th style="padding: 10px;">FE Sürüm</th>
+              <th style="padding: 10px;">Backend</th>
+              <th style="padding: 10px;">BE Sürüm</th>
+              <th style="padding: 10px;">Veritabanı</th>
+              <th style="padding: 10px;">Platform</th>
+              <th style="padding: 10px;">DE Sorumlu</th>
+              <th style="padding: 10px;">SLA</th>
+              <th style="padding: 10px;">Karmaşıklık</th>
+              <th style="padding: 10px;">Özel Alanlar</th>
+              <th style="padding: 10px;">Oluşturulma</th>
+              <th style="padding: 10px;" *ngIf="isAdmin()">İşlemler</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let project of filteredProjects" style="border-bottom: 1px solid #eee;">
+              <td style="padding: 10px; font-weight: bold;" [title]="project.uygulamaAdi">
                 {{ 
-                  project.tanimUygulamaAciklama.length > textLimit
-                    ? (project.tanimUygulamaAciklama | slice:0:textLimit) + '...' 
-                    : project.tanimUygulamaAciklama 
+                  project.uygulamaAdi.length > textLimit 
+                    ? (project.uygulamaAdi | slice:0:textLimit) + '...' 
+                    : project.uygulamaAdi 
                 }}
-              </ng-container>
-              <ng-template #noDesc>—</ng-template>
-            </td>
-
-            <td style="padding: 10px;">{{ project.frontend || '—' }}</td>
-            <td style="padding: 10px;">{{ project.backend || '—' }}</td>
-
-            <td style="padding: 10px;" *ngIf="isAdmin()">
-              <div style="display: flex; gap: 6px;">
-                <button class="secondary-btn" type="button" (click)="editProject(project)">Düzenle</button>
-                <button class="danger-btn" type="button" (click)="deleteProject(project.id)">Aktif/Pasif</button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+              </td>
+              <td style="padding: 10px;">{{ project.sektorluk || '—' }}</td>
+              <td style="padding: 10px;" [title]="project.tanimUygulamaAciklama || ''">
+                <ng-container *ngIf="project.tanimUygulamaAciklama; else noDesc">
+                  {{ 
+                    project.tanimUygulamaAciklama.length > textLimit
+                      ? (project.tanimUygulamaAciklama | slice:0:textLimit) + '...' 
+                      : project.tanimUygulamaAciklama 
+                  }}
+                </ng-container>
+                <ng-template #noDesc>—</ng-template>
+              </td>
+              <td style="padding: 10px;">{{ project.canliUrl || '—' }}</td>
+              <td style="padding: 10px;">{{ project.testUrl || '—' }}</td>
+              <td style="padding: 10px;"><span class="status-badge">{{ project.aktifPasif || '—' }}</span></td>
+              <td style="padding: 10px;">{{ project.frontend || '—' }}</td>
+              <td style="padding: 10px;">{{ project.feVersion || '—' }}</td>
+              <td style="padding: 10px;">{{ project.backend || '—' }}</td>
+              <td style="padding: 10px;">{{ project.beVersion || '—' }}</td>
+              <td style="padding: 10px;">{{ project.databaseType || '—' }}</td>
+              <td style="padding: 10px;">{{ project.platform || '—' }}</td>
+              <td style="padding: 10px;">{{ project.deSorumlu || '—' }}</td>
+              <td style="padding: 10px;">{{ project.sla || '—' }}</td>
+              <td style="padding: 10px;">{{ project.complexity || '—' }}</td>
+              <td style="padding: 10px;" [title]="getCustomFieldsText(project)">
+                {{ getCustomFieldsText(project) || '—' }}
+              </td>
+              <td style="padding: 10px;">{{ project.createdAt ? (project.createdAt | date:'short') : '—' }}</td>
+              <td style="padding: 10px;" *ngIf="isAdmin()">
+                <div style="display: flex; gap: 6px;">
+                  <button class="secondary-btn" type="button" (click)="editProject(project)">Düzenle</button>
+                  <button class="danger-btn" type="button" (click)="deleteProject(project.id)">Aktif/Pasif</button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
   </section>
@@ -356,26 +409,40 @@
         <input [(ngModel)]="formState.platform" />
       </label>
 
-      <label>
-        Dev
-        <select [(ngModel)]="formState.deSorumlu">
-          <option value="">Seçiniz</option>
-          <!-- Humanist API'sinden dönen property isimlerine göre (örn: firstName / lastName veya ad / soyad) -->
-          <option *ngFor="let emp of employees" [value]="(emp.Name) + ' ' + (emp.Surname)">
-            {{ emp.Name }} {{ emp.Surname }}
-          </option>
-        </select>
-      </label>
+      
 
       <label>
         SLA
-        <input [(ngModel)]="formState.stSorumlu" />
+        <input [(ngModel)]="formState.sla" />
       </label>
 
       <label>
-        Karmaşıklık
+        Complexity
         <input [(ngModel)]="formState.complexity" />
       </label>
+      
+      <!-- DÜZENLENMİŞ HTML -->
+<label class="full-width">
+  Devs
+  <div class="selected-chips" *ngIf="formState.deSorumlu && formState.deSorumlu.length">
+    <span class="chip" *ngFor="let d of formState.deSorumlu">
+      {{ d }} <button type="button" class="chip-remove" (click)="removeDeveloper(d)">×</button>
+    </span>
+  </div>
+  <div class="developer-list">
+    <button
+      type="button"
+      *ngFor="let emp of employees"
+      class="developer-item"
+      [class.selected]="isDeveloperSelected(emp.Name + ' ' + emp.Surname)"
+      (click)="toggleDeveloper(emp.Name + ' ' + emp.Surname)">
+      {{ emp.Name }} {{ emp.Surname }}
+    </button>
+  </div>
+  <div class="info-text" *ngIf="!employees || employees.length === 0">
+    developer listesi bekleniyor...
+  </div>
+</label>
 
       <div class="custom-fields">
         <div class="custom-fields-header">

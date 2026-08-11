@@ -44,8 +44,8 @@ export class Project {
   @Column({ name: 'de_sorumlu', nullable: true })
   deSorumlu: string;
 
-  @Column({ name: 'st_sorumlu', nullable: true })
-  stSorumlu: string;
+  @Column({ name: 'sla', nullable: true })
+  sla: string;
 
   @Column({ nullable: true })
   complexity: string;
