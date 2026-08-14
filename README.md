@@ -1,36 +1,29 @@
 # Renault Proje Yönetim Uygulaması
 
-Renault yazılım geliştirme ekibi için hazırlanan bu proje; NestJS (TypeScript) backend ve Angular frontend mimarisine sahip, Postgres veritabanı destekli bir Proje Yönetim (CRUD) web uygulamasıdır.
+Basit ve kullanıcı dostu bir proje yönetim uygulamasıdır. Renault yazılım geliştirme ekibi için hazırlanmış olup projeler, görevler ve kullanıcılar üzerinde temel yönetim işlemleri yapmanızı sağlar.
 
----
+Öne çıkan özellikler
+- Proje ve görev CRUD (oluşturma, görüntüleme, düzenleme, silme)
+- Görev takibi ve durum güncellemeleri
+- Basit kullanıcı yönetimi ve yetkilendirme
 
-## Çalıştırma Adımları
+Kullanılan teknolojiler (kısa)
+- Backend: NestJS (TypeScript)
+- Frontend: Angular
+- Veritabanı: PostgreSQL
 
-### 1. Yerel Ortamda Çalıştırma
+Hızlı başlangıç (çok teknik olmayan özet)
+1. Node.js ve PostgreSQL kurulu olmalıdır.
+2. Depoyu klonlayın: `git clone https://github.com/MertKadakal/renault-dev-project.git`
+3. Backend ve frontend dizinlerinde bağımlılıkları yükleyip çalıştırın (örn. `npm install` ve ilgili `npm start`/`ng serve`).
+4. Daha ayrıntılı kurulum ve konfigürasyon bilgileri proje içindeki `backend/README.md` ve frontend dokümanlarında yer almaktadır.
 
-**Backend:**
-```bash
-cd backend
-npm install
-npm start
-```
+Katkıda bulunma
+- İyileştirme önerileri veya hata bildirimleri için issue açabilirsiniz.
+- Değişiklik önerileri için pull request gönderin.
 
-**Frontend:**
-```bash
-cd frontend
-npm install
-ng serve --open
-```
+İletişim
+- Proje ile ilgili sorular için repo sahibi ile iletişime geçebilirsiniz.
 
----
-
-## Veritabanı Bilgileri (PostgreSQL)
-
-Uygulamanın çalışabilmesi için bir **PostgreSQL** sunucusu gereklidir. Bağlantı ayarları şu şekildedir:
-
-* **Host:** localhost
-* **Port:** 5432
-* **Username:** postgres
-* **Password:** mert
-* **Database:** postgres
-* **ORM Ayarları:** `autoLoadEntities: true`, `synchronize: false`
+Lisans
+- Bu depoda özel bir lisans belirtilmemiştir. Lisans eklemek isterseniz bir LICENSE dosyası oluşturabilirsiniz.
