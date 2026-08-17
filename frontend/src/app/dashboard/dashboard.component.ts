@@ -37,6 +37,7 @@ interface ProjectFormState {
 export class DashboardComponent implements OnInit {
   projects: Project[] = [];
   filteredProjects: Project[] = [];
+  aktifs: number = 0;
   searchTerm = '';
   isLoading = true;
   hasError = false;
@@ -85,17 +86,8 @@ export class DashboardComponent implements OnInit {
     this.viewMode = mode;
   }
 
-  // Pop-up durumunu tutan değişken
-  isProfileOpen: boolean = false;
-
-  // Pop-up'ı açma
-  openProfile(): void {
-    this.isProfileOpen = true;
-  }
-
-  // Pop-up'ı kapatma
-  closeProfile(): void {
-    this.isProfileOpen = false;
+  toggleViewMode(): void {
+    this.viewMode = this.viewMode === 'grid' ? 'table' : 'grid';
   }
 
   async fetchEmployees(): Promise<void> {
@@ -351,6 +343,8 @@ export class DashboardComponent implements OnInit {
 
   applyFiltersAndSorting(): void {
     const term = this.searchTerm.toLowerCase().trim();
+
+    this.aktifs = this.projects.filter((project) => project.aktifPasif === 'A').length;
 
     this.filteredProjects = this.projects.filter((project) => {
       if (!term) {

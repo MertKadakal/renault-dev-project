@@ -87,15 +87,18 @@
 
   <!-- SAĞ KISIM: Aksiyon Butonları -->
   <div class="action-buttons" style="display: flex; gap: 8px; align-items: center;">
+    <!-- Kullanıcı Bilgisi -->
+    <div class="user-info" *ngIf="currentUser">
+      <div class="user-ipn">{{ currentUser.username }}</div>
+      <div class="user-role">{{ isAdmin() ? 'Admin' : 'Standart Kullanıcı' }}</div>
+    </div>
+
+    <hr style="height: 24px; border: 1px solid #ccc; margin: 0 8px;" /> 
+
     <button *ngIf="isAdmin()" class="primary-btn" type="button" (click)="addProject()">
       + Yeni proje
     </button>
-
-    <!-- Profil Butonu -->
-    <button class="secondary-btn profile-btn" type="button" (click)="openProfile()">
-      <span class="icon">👤</span>
-    </button>
-
+    
     <!-- Çıkış Butonu -->
     <button class="danger-btn logout-btn" type="button" (click)="onLogout()">
       ⍈
@@ -109,25 +112,17 @@
       <div style="display: flex; align-items: center; gap: 12px;">
         <h3>Aktif projeler</h3>
         <span class="pill">{{ filteredProjects.length }} kayıt</span>
+        <span class="pill-aktifs">{{ aktifs }} aktif</span>
       </div>
 
-      <!-- GÖRÜNÜM DEĞİŞTİRME BUTONLARI -->
-      <div class="view-toggle-btns" style="display: flex; gap: 4px;">
-        <button 
-          type="button" 
-          class="secondary-btn" 
-          [class.active]="viewMode === 'grid'"
-          (click)="setViewMode('grid')"
-          title="Kart Görünümü">
-          ▦ Kart
-        </button>
-        <button 
-          type="button" 
-          class="secondary-btn" 
-          [class.active]="viewMode === 'table'"
-          (click)="setViewMode('table')"
-          title="Liste Görünümü">
-          ☰ Liste
+      <div class="view-toggle">
+        <button
+          type="button"
+          class="view-mode-button"
+          [attr.title]="viewMode === 'grid' ? 'Liste görünümüne geç' : 'Kart görünümüne geç'"
+          (click)="toggleViewMode()"
+        >
+          {{ viewMode === 'grid' ? 'Liste' : 'Kart' }}
         </button>
       </div>
     </div>
@@ -163,6 +158,10 @@
         <div class="meta-row">
           <span>Frontend: {{ project.frontend || '—' }}</span>
           <span>Backend: {{ project.backend || '—' }}</span>
+        </div>
+
+        <div class="meta-row" *ngIf="project.sla">
+          <span>SLA: {{ project.sla }}</span>
         </div>
 
         <div class="custom-fields-list" *ngIf="project.customFields && (project.customFields | keyvalue).length > 0">
@@ -252,39 +251,6 @@
   </section>
 </div>
 
-<!-- PROFİL POP-UP / MODAL -->
-<div class="modal-backdrop" *ngIf="isProfileOpen" (click)="closeProfile()">
-  <div class="modal-card" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-      <h3>Kullanıcı Profili</h3>
-      <button class="icon-btn" type="button" (click)="closeProfile()">&times;</button>
-    </div>
-
-    <div class="modal-body">
-      <div class="info-group">
-        <strong>IPN:</strong>
-        <p>{{ currentUser?.username || '—' }}</p>
-      </div>
-
-      <div class="info-group">
-        <strong>Statü:</strong>
-        
-        <p *ngIf="currentUser?.role; else noRole">
-          <ng-container *ngIf="currentUser.role === 'admin'">Admin Kullanıcı</ng-container>
-          <ng-container *ngIf="currentUser.role === 'user'">Standart Kullanıcı</ng-container>
-        </p>
-
-        <ng-template #noRole>
-          <p>Belirtilmedi</p>
-        </ng-template>
-      </div>
-    </div>
-
-    <div class="modal-footer">
-      <button class="secondary-btn" type="button" (click)="closeProfile()">Kapat</button>
-    </div>
-  </div>
-</div>
 
 <!-- PROJE İNCELEME MODALI -->
 <div class="modal-backdrop" *ngIf="showViewer">
@@ -348,6 +314,11 @@
       <div class="info-group">
         <strong>DE Sorumlu:</strong>
         <p>{{ viewingProject?.deSorumlu || '—' }}</p>
+      </div>
+
+      <div class="info-group">
+        <strong>SLA:</strong>
+        <p>{{ viewingProject?.sla || '—' }}</p>
       </div>
 
       <div class="info-group">
