@@ -7,7 +7,7 @@ export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
   @Get()
-  findAll(): Promise<Project[]> {
+  findAll(): Promise<[Project[], number]> {
     return this.projectsService.findAll();
   }
 

@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { Project } from '../models/project';
 
 @Injectable({
@@ -12,7 +12,19 @@ export class ProjectService {
   constructor(private http: HttpClient) { }
 
   getProjects(): Observable<Project[]> {
-    return this.http.get<Project[]>(this.apiUrl);
+    return this.http.get<any>(this.apiUrl).pipe(
+      map((response) => {
+        if (Array.isArray(response) && Array.isArray(response[0])) {
+          return response[0] as Project[];
+        }
+
+        if (Array.isArray(response)) {
+          return response as Project[];
+        }
+
+        return [] as Project[];
+      })
+    );
   }
 
   createProject(project: Partial<Project>): Observable<Project> {

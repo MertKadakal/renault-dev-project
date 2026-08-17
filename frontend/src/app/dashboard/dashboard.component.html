@@ -147,25 +147,15 @@
     <div *ngIf="!isLoading && !hasError && filteredProjects.length > 0 && viewMode === 'grid'" class="project-grid">
       <article class="project-card" *ngFor="let project of filteredProjects">
         <div class="card-top">
-          <!-- Uygulama Adı: Dynamic Limit -->
-          <h4 [title]="project.uygulamaAdi">
-            {{ 
-              project.uygulamaAdi.length > textLimit 
-                ? (project.uygulamaAdi | slice:0:textLimit) + '...' 
-                : project.uygulamaAdi 
-            }}
+          <h4 [title]="project.uygulamaAdi || 'Uygulama adı yok'">
+            {{ truncateText(project.uygulamaAdi, textLimit) || 'Uygulama adı yok' }}
           </h4>
           <span class="status-badge">{{ project.aktifPasif || 'Belirtilmedi' }}</span>
         </div>
 
-        <!-- Açıklama: Dynamic Limit -->
         <p class="description" [title]="project.tanimUygulamaAciklama || 'Açıklama bulunmuyor.'">
           <ng-container *ngIf="project.tanimUygulamaAciklama; else noDesc">
-            {{ 
-              project.tanimUygulamaAciklama.length > textLimit 
-                ? (project.tanimUygulamaAciklama | slice:0:textLimit) + '...' 
-                : project.tanimUygulamaAciklama 
-            }}
+            {{ truncateText(project.tanimUygulamaAciklama, textLimit) }}
           </ng-container>
           <ng-template #noDesc>Açıklama bulunmuyor.</ng-template>
         </p>
@@ -184,9 +174,10 @@
           </ul>
         </div>
 
-        <div class="card-actions" *ngIf="isAdmin()">
-          <button class="secondary-btn" type="button" (click)="editProject(project)">Düzenle</button>
-          <button class="danger-btn" type="button" (click)="deleteProject(project.id)">Aktif/Pasif</button>
+        <div class="card-actions">
+          <button class="secondary-btn" type="button" (click)="viewProject(project)">İncele</button>
+          <button *ngIf="isAdmin()" class="secondary-btn" type="button" (click)="editProject(project)">Düzenle</button>
+          <button *ngIf="isAdmin()" class="danger-btn" type="button" (click)="deleteProject(project.id)">Aktif/Pasif</button>
         </div>
       </article>
     </div>
@@ -219,21 +210,13 @@
           </thead>
           <tbody>
             <tr *ngFor="let project of filteredProjects" style="border-bottom: 1px solid #eee;">
-              <td style="padding: 10px; font-weight: bold;" [title]="project.uygulamaAdi">
-                {{ 
-                  project.uygulamaAdi.length > textLimit 
-                    ? (project.uygulamaAdi | slice:0:textLimit) + '...' 
-                    : project.uygulamaAdi 
-                }}
+              <td style="padding: 10px; font-weight: bold;" [title]="project.uygulamaAdi || 'Uygulama adı yok'">
+                {{ truncateText(project.uygulamaAdi, textLimit) || 'Uygulama adı yok' }}
               </td>
               <td style="padding: 10px;">{{ project.sektorluk || '—' }}</td>
               <td style="padding: 10px;" [title]="project.tanimUygulamaAciklama || ''">
                 <ng-container *ngIf="project.tanimUygulamaAciklama; else noDesc">
-                  {{ 
-                    project.tanimUygulamaAciklama.length > textLimit
-                      ? (project.tanimUygulamaAciklama | slice:0:textLimit) + '...' 
-                      : project.tanimUygulamaAciklama 
-                  }}
+                  {{ truncateText(project.tanimUygulamaAciklama, textLimit) }}
                 </ng-container>
                 <ng-template #noDesc>—</ng-template>
               </td>
@@ -253,10 +236,11 @@
                 {{ getCustomFieldsText(project) || '—' }}
               </td>
               <td style="padding: 10px;">{{ project.createdAt ? (project.createdAt | date:'short') : '—' }}</td>
-              <td style="padding: 10px;" *ngIf="isAdmin()">
+              <td style="padding: 10px;">
                 <div style="display: flex; gap: 6px;">
-                  <button class="secondary-btn" type="button" (click)="editProject(project)">Düzenle</button>
-                  <button class="danger-btn" type="button" (click)="deleteProject(project.id)">Aktif/Pasif</button>
+                  <button class="secondary-btn" type="button" (click)="viewProject(project)">İncele</button>
+                  <button *ngIf="isAdmin()" class="secondary-btn" type="button" (click)="editProject(project)">Düzenle</button>
+                  <button *ngIf="isAdmin()" class="danger-btn" type="button" (click)="deleteProject(project.id)">Aktif/Pasif</button>
                 </div>
               </td>
             </tr>
@@ -298,6 +282,82 @@
 
     <div class="modal-footer">
       <button class="secondary-btn" type="button" (click)="closeProfile()">Kapat</button>
+    </div>
+  </div>
+</div>
+
+<!-- PROJE İNCELEME MODALI -->
+<div class="modal-backdrop" *ngIf="showViewer">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3>{{ viewingProject?.uygulamaAdi || 'Proje detayları' }}</h3>
+      <button class="icon-btn" type="button" (click)="closeViewer()">×</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="info-group">
+        <strong>Uygulama Adı:</strong>
+        <p>{{ viewingProject?.uygulamaAdi || '—' }}</p>
+      </div>
+
+      <div class="info-group">
+        <strong>Direktörlük:</strong>
+        <p>{{ viewingProject?.sektorluk || '—' }}</p>
+      </div>
+
+      <div class="info-group">
+        <strong>Açıklama:</strong>
+        <p>{{ viewingProject?.tanimUygulamaAciklama || '—' }}</p>
+      </div>
+
+      <div class="info-group">
+        <strong>Canlı URL:</strong>
+        <p>{{ viewingProject?.canliUrl || '—' }}</p>
+      </div>
+
+      <div class="info-group">
+        <strong>Test URL:</strong>
+        <p>{{ viewingProject?.testUrl || '—' }}</p>
+      </div>
+
+      <div class="info-group">
+        <strong>Durum:</strong>
+        <p>{{ viewingProject?.aktifPasif || '—' }}</p>
+      </div>
+
+      <div class="info-group">
+        <strong>Frontend:</strong>
+        <p>{{ viewingProject?.frontend || '—' }}</p>
+      </div>
+
+      <div class="info-group">
+        <strong>Backend:</strong>
+        <p>{{ viewingProject?.backend || '—' }}</p>
+      </div>
+
+      <div class="info-group">
+        <strong>Veritabanı:</strong>
+        <p>{{ viewingProject?.databaseType || '—' }}</p>
+      </div>
+
+      <div class="info-group">
+        <strong>Platform:</strong>
+        <p>{{ viewingProject?.platform || '—' }}</p>
+      </div>
+
+      <div class="info-group">
+        <strong>DE Sorumlu:</strong>
+        <p>{{ viewingProject?.deSorumlu || '—' }}</p>
+      </div>
+
+      <div class="info-group">
+        <strong>Karmaşıklık:</strong>
+        <p>{{ viewingProject?.complexity || '—' }}</p>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="secondary-btn" type="button" (click)="closeViewer()">Kapat</button>
     </div>
   </div>
 </div>

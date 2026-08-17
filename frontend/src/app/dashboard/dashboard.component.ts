@@ -42,7 +42,9 @@ export class DashboardComponent implements OnInit {
   hasError = false;
   role: string | null = null;
   showEditor = false;
+  showViewer = false;
   editingProject: Project | null = null;
+  viewingProject: Project | null = null;
   formState: ProjectFormState = this.createEmptyFormState();
   originalFormState: ProjectFormState | null = null;
   isSaving = false;
@@ -167,6 +169,19 @@ export class DashboardComponent implements OnInit {
     this.showEditor = true;
   }
 
+  viewProject(project: Project): void {
+    this.viewingProject = project;
+    const customFields = project.customFields ? Object.entries(project.customFields).map(([key, value]) => ({ key, value })) : [];
+    const deSorumluArray = project.deSorumlu ? project.deSorumlu.split(',').map((s) => s.trim()).filter(Boolean) : [];
+    this.formState = {
+      ...project,
+      deSorumlu: deSorumluArray,
+      customFields,
+    } as any;
+    this.showViewer = true;
+    this.showEditor = false;
+  }
+
   editProject(project: Project): void {
     if (!this.isAdmin()) {
       return;
@@ -182,6 +197,13 @@ export class DashboardComponent implements OnInit {
     } as any;
     this.originalFormState = this.cloneFormState(this.formState);
     this.showEditor = true;
+    this.showViewer = false;
+  }
+
+  closeViewer(): void {
+    this.showViewer = false;
+    this.viewingProject = null;
+    this.formState = this.createEmptyFormState();
   }
 
   closeEditor(): void {
@@ -377,6 +399,13 @@ export class DashboardComponent implements OnInit {
       return '';
     }
     return String(value).toLowerCase();
+  }
+
+  truncateText(value: string | null | undefined, maxLength = 30): string {
+    if (!value) {
+      return '';
+    }
+    return value.length > maxLength ? `${value.slice(0, maxLength)}...` : value;
   }
 
   getCustomFieldsText(project: Project): string {
