@@ -244,9 +244,19 @@
   color: #111827;
 }
 
-.status-badge {
+.status-badge-a {
   background: #ecfeff;
   color: #0f766e;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.status-badge-b {
+  background: #fef3c7;
+  color: #92400e;
   padding: 4px 8px;
   border-radius: 999px;
   font-size: 0.8rem;

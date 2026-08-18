@@ -145,7 +145,12 @@
           <h4 [title]="project.uygulamaAdi || 'Uygulama adı yok'">
             {{ truncateText(project.uygulamaAdi, textLimit) || 'Uygulama adı yok' }}
           </h4>
-          <span class="status-badge">{{ project.aktifPasif || 'Belirtilmedi' }}</span>
+          <span 
+            class="status-badge" 
+            [class.status-badge-a]="project.aktifPasif === 'A'" 
+            [class.status-badge-b]="project.aktifPasif === 'P'">
+            {{ project.aktifPasif || 'Belirtilmedi' }}
+          </span>
         </div>
 
         <p class="description" [title]="project.tanimUygulamaAciklama || 'Açıklama bulunmuyor.'">

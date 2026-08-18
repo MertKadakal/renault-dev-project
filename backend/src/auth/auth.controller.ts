@@ -2,6 +2,7 @@
 import { Body, Controller, Post, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { LdapService } from './ldap.service';
+import { LoginDto } from './dto/login.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -11,7 +12,7 @@ export class AuthController {
   ) {}
 
   @Post('login')
-  async login(@Body() body: { username: string; pass: string }) {
+  async login(@Body() body: LoginDto): Promise<any> {
     try {
       const user = await this.ldapService.validateUser(body.username, body.pass);
 
@@ -27,6 +28,7 @@ export class AuthController {
         },
       };
     } catch (error) {
+      console.error('Giriş hatası:', error);
       const message = error instanceof Error ? error.message : 'Giriş başarısız';
       throw new UnauthorizedException(message);
     }
