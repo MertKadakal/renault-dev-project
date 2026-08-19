@@ -144,15 +144,7 @@ Sistem PostgreSQL veritabanında `public.projects` tablosunu kullanmaktadır.
 
 ---
 
-### 1️⃣ Veritabanı Yapılandırması
-PostgreSQL üzerinde `renault_project_db` isimli bir veritabanı oluşturun:
-```sql
-CREATE DATABASE renault_project_db;
-```
-
----
-
-### 2️⃣ Backend Kurulumu ve Çalıştırılması
+### 1️⃣ Backend Kurulumu ve Çalıştırılması
 
 1. Backend dizinine geçin:
    ```bash
@@ -163,30 +155,13 @@ CREATE DATABASE renault_project_db;
    npm install
    ```
 3. `.env` dosyasını oluşturun veya düzenleyin:
-   ```env
-   PORT=3000
-   DB_HOST=localhost
-   DB_PORT=5432
-   DB_USERNAME=postgres
-   DB_PASSWORD=your_password
-   DB_NAME=renault_project_db
-
-   JWT_SECRET=renault_super_secret_jwt_key_2026
-
-   LDAP_URL=ldap://10.237.139.93:389
-   LDAP_DOMAIN=CORP
-
-   EMPLOYEES_API_URL=https://api.example.com/employees
-   ```
 4. Backend servisini geliştirme modunda başlatın:
    ```bash
    npm run start:dev
    ```
-   *Backend varsayılan olarak `http://localhost:3000` adresinde çalışacaktır.*
-
 ---
 
-### 3️⃣ Frontend Kurulumu ve Çalıştırılması
+### 2️⃣ Frontend Kurulumu ve Çalıştırılması
 
 1. Frontend dizinine geçin:
    ```bash
@@ -200,19 +175,6 @@ CREATE DATABASE renault_project_db;
    ```bash
    npm start
    ```
-   *Frontend varsayılan olarak `http://localhost:4200` adresinde çalışacaktır.*
-
----
-
-### 🔑 Test Kullanıcı Bilgileri (Statik Hesaplar)
-
-LDAP sunucusuna doğrudan erişiminiz yoksa aşağıdaki varsayılan hesapları kullanarak sistemi test edebilirsiniz:
-
-| Rol | Kullanıcı Adı (Username) | Şifre (Password) | Yetki Kapsamı |
-| :--- | :--- | :--- | :--- |
-| **Admin** | `admin` | `admin123` | Tam Yetki (Ekleme, Düzenleme, Silme, Listeleme) |
-| **User** | `user` | `user123` | Salt Okunur (Görüntüleme ve Filtreleme) |
-
 ---
 
 ## 📦 Proje Dizin Yapısı
