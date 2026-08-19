@@ -74,9 +74,21 @@ export class LdapService {
         dn: `CN=${normalizedUsername},OU=Users,DC=${config.domain.toLowerCase()},DC=local`,
         role,
       };
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Kullanıcı adı veya şifre hatalı';
-      throw new UnauthorizedException(message);
+    } catch (error: any) {
+      const rawMessage = error?.message || error?.toString() || '';
+
+      // LDAP "Invalid credentials" veya AD "data 52e" içeriyor mu kontrolü
+      const isInvalidCredentials = 
+        rawMessage.includes('Invalid credentials') || 
+        rawMessage.includes('data 52e') || 
+        rawMessage.includes('80090308');
+
+      if (isInvalidCredentials) {
+        throw new UnauthorizedException('Kullanıcı adı veya şifre hatalı');
+      }
+
+      // Diğer beklenmeyen LDAP / sistem hataları için
+      throw new UnauthorizedException('Giriş yapılırken bir hata oluştu');
     } finally {
       await client.unbind().catch(() => undefined);
     }
