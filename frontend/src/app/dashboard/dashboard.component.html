@@ -2,116 +2,120 @@
   <section class="hero-card" style="display: flex; align-items: center; justify-content: space-between;">
 
 
-<!-- Ya da listedeki tek bir proje kartı/satırı için tıklanırsa -->
-<!-- <button (click)="generateAndLogTempLink(project)">Bu Projeyi Paylaş</button> -->
-  <!-- SOL KISIM: Başlıklar -->
-  <div class="hero-title">
-    <p class="eyebrow">Oyak Renault</p>
-    <h2>Proje Takip Sistemi</h2>
-    <p class="subtitle">Filtrele, incele, yönet</p>
-  </div>
+    <!-- Ya da listedeki tek bir proje kartı/satırı için tıklanırsa -->
+    <!-- <button (click)="generateAndLogTempLink(project)">Bu Projeyi Paylaş</button> -->
+    <!-- SOL KISIM: Başlıklar -->
+    <div class="hero-title">
+      <p class="eyebrow">Oyak Renault</p>
+      <h2>Proje Takip Sistemi</h2>
+      <p class="subtitle">Filtrele, incele, yönet</p>
+    </div>
 
-  <!-- SAĞ KISIM: Logo -->
-  <div class="hero-brand">
-    <img 
-      src="../../assets/images/oyak-renault-dark.png"
-      alt="Oyak Renault Logo" 
-      class="hero-logo"
-      style="height: 50px; width: auto; object-fit: contain;" 
-    />
-  </div>
+    <!-- SAĞ KISIM: Logo -->
+    <div class="hero-brand">
+      <img 
+        src="../../assets/images/oyak-renault-dark.png"
+        alt="Oyak Renault Logo" 
+        class="hero-logo"
+        style="height: 50px; width: auto; object-fit: contain;" 
+      />
+    </div>
 
-</section>
+  </section>
   <section class="hero-card" style="display: flex; align-items: center; justify-content: space-between; gap: 16px;">
   
-  <!-- SOL KISIM: Filtreler (Arama Grubu) -->
-  <div class="search-group" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-    <select 
-      [(ngModel)]="searchField" 
-      (ngModelChange)="onSearchChange()"
-      style="padding: 8px; border-radius: 6px; border: 1px solid #ccc; background: white;">
-      <option value="all">Tüm Alanlar</option>
-      <option value="uygulamaAdi">Uygulama Adı</option>
-      <option value="sektorluk">Sektör</option>
-      <option value="frontend">Frontend</option>
-      <option value="backend">Backend</option>
-      <option value="databaseType">Veritabanı</option>
-      <option value="platform">Platform</option>
-      <option value="deSorumlu">DE Sorumlu</option>
-      <option value="sla">SLA</option>
-      <option value="complexity">Karmaşıklık</option>
-    </select>
-
-    <label class="search-box hero-brand">
-      <span>🔍</span>
-      <input
-        type="text"
-        [placeholder]="searchField === 'all' ? 'Tüm alanlarda ara...' : 'Ara...'
-        "
-        [(ngModel)]="searchTerm"
+    <!-- SOL KISIM: Filtreler (Arama Grubu) -->
+    <div class="search-group" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+      <select 
+        [(ngModel)]="searchField" 
         (ngModelChange)="onSearchChange()"
-      />
-    </label>
-
-    <label style="display:flex; gap:6px; align-items:center;">
-      <span>Sırala:</span>
-      <select
-        [(ngModel)]="sortField"
-        (ngModelChange)="onSortChange()"
         style="padding: 8px; border-radius: 6px; border: 1px solid #ccc; background: white;">
-        <option value="">Sıralama yok</option>
+        <option value="all">Tüm Alanlar</option>
         <option value="uygulamaAdi">Uygulama Adı</option>
         <option value="sektorluk">Sektör</option>
-        <option value="aktifPasif">Durum</option>
         <option value="frontend">Frontend</option>
-        <option value="feVersion">Frontend Sürümü</option>
         <option value="backend">Backend</option>
-        <option value="beVersion">Backend Sürümü</option>
         <option value="databaseType">Veritabanı</option>
         <option value="platform">Platform</option>
         <option value="deSorumlu">DE Sorumlu</option>
         <option value="sla">SLA</option>
         <option value="complexity">Karmaşıklık</option>
       </select>
-    </label>
 
-    <button
-      type="button"
-      class="secondary-btn"
-      (click)="toggleSortDirection()"
-      style="min-width: 52px;"
-      title="Sıralama yönünü değiştir">
-      {{ sortDirection === 'asc' ? 'A⇅' : 'Z⇅' }}
-    </button>
-  </div>
+      <label class="search-box hero-brand">
+        <span>🔍</span>
+        <input
+          type="text"
+          [placeholder]="searchField === 'all' ? 'Tüm alanlarda ara...' : 'Ara...'
+          "
+          [(ngModel)]="searchTerm"
+          (ngModelChange)="onSearchChange()"
+        />
+      </label>
 
-  <!-- SAĞ KISIM: Aksiyon Butonları -->
-  <div class="action-buttons" style="display: flex; gap: 8px; align-items: center;">
-    <!-- Kullanıcı Bilgisi -->
-    <div class="user-info" *ngIf="currentUser">
-      <div class="user-ipn">{{ currentUser.username }}</div>
-      <div class="user-role">{{ isAdmin() ? 'Admin' : 'Standart Kullanıcı' }}</div>
+      <label style="display:flex; gap:6px; align-items:center;">
+        <span>Sırala:</span>
+        <select
+          [(ngModel)]="sortField"
+          (ngModelChange)="onSortChange()"
+          style="padding: 8px; border-radius: 6px; border: 1px solid #ccc; background: white;">
+          <option value="">Sıralama yok</option>
+          <option value="uygulamaAdi">Uygulama Adı</option>
+          <option value="sektorluk">Sektör</option>
+          <option value="aktifPasif">Durum</option>
+          <option value="frontend">Frontend</option>
+          <option value="feVersion">Frontend Sürümü</option>
+          <option value="backend">Backend</option>
+          <option value="beVersion">Backend Sürümü</option>
+          <option value="databaseType">Veritabanı</option>
+          <option value="platform">Platform</option>
+          <option value="deSorumlu">DE Sorumlu</option>
+          <option value="sla">SLA</option>
+          <option value="complexity">Karmaşıklık</option>
+        </select>
+      </label>
+
+      <button
+        type="button"
+        class="secondary-btn"
+        (click)="toggleSortDirection()"
+        style="min-width: 52px;"
+        title="Sıralama yönünü değiştir">
+        {{ sortDirection === 'asc' ? 'A⇅' : 'Z⇅' }}
+      </button>
     </div>
 
-    <hr style="height: 24px; border: 1px solid #ccc; margin: 0 8px;" /> 
-
-    <button *ngIf="isAdmin()" class="primary-btn" type="button" (click)="addProject()">
-      + Yeni proje
-    </button>
     
-    <!-- Çıkış Butonu -->
-    <button class="danger-btn logout-btn" type="button" (click)="onLogout()">
-      ⍈
-    </button>
-  </div>
 
-</section>
+
+    <section class="hero-card" style="display: flex; align-items: center; justify-content: space-between;">
+        <!-- SAĞ KISIM: Aksiyon Butonları -->
+      <div class="action-buttons" style="display: flex; gap: 8px; align-items: center;">
+        <!-- Kullanıcı Bilgisi -->
+        <div class="user-info" *ngIf="currentUser">
+          <div class="user-ipn">{{ currentUser.username }}</div>
+          <div class="user-role">{{ isAdmin() ? 'Admin' : 'Standart Kullanıcı' }}</div>
+        </div>
+
+        <hr style="height: 24px; border: 1px solid #ccc; margin: 0 8px;" /> 
+
+        <button *ngIf="isAdmin()" class="primary-btn" type="button" (click)="addProject()">
+          + Yeni proje
+        </button>
+        
+        <!-- Çıkış Butonu -->
+        <button class="danger-btn logout-btn" type="button" (click)="onLogout()">
+          ⍈
+        </button>
+      </div>
+    </section>
+  </section>
 
   <section class="project-list-card">
     <div class="list-header" style="display: flex; justify-content: space-between; align-items: center;">
       <div style="display: flex; align-items: center; gap: 12px;">
-        <h3>Aktif projeler</h3>
         <span class="pill">{{ filteredProjects.length }} kayıt</span>
+        <hr style="height: 24px; border: 1px solid #ccc; margin: 0 8px;" />
         <span class="pill-aktifs">{{ aktifs }} aktif</span>
       </div>
 
@@ -181,7 +185,7 @@
         <div class="card-actions">
           <button class="secondary-btn" type="button" (click)="viewProject(project)">İncele</button>
           <button *ngIf="isAdmin()" class="secondary-btn" type="button" (click)="editProject(project)">Düzenle</button>
-          <button *ngIf="isAdmin()" class="danger-btn" type="button" (click)="deleteProject(project.id)">Aktif/Pasif</button>
+          <button *ngIf="isAdmin()" class="danger-btn" type="button" (click)="deleteProject(project)">Aktif/Pasif</button>
         </div>
       </article>
     </div>
@@ -244,7 +248,7 @@
                 <div style="display: flex; gap: 6px;">
                   <button class="secondary-btn" type="button" (click)="viewProject(project)">İncele</button>
                   <button *ngIf="isAdmin()" class="secondary-btn" type="button" (click)="editProject(project)">Düzenle</button>
-                  <button *ngIf="isAdmin()" class="danger-btn" type="button" (click)="deleteProject(project.id)">Aktif/Pasif</button>
+                  <button *ngIf="isAdmin()" class="danger-btn" type="button" (click)="deleteProject(project)">Aktif/Pasif</button>
                 </div>
               </td>
             </tr>
@@ -498,6 +502,36 @@
       <button class="secondary-btn" type="button" (click)="closeEditor()">İptal</button>
       <button class="primary-btn" type="button" (click)="saveProject()" [disabled]="isSaving">
         {{ isSaving ? 'Kaydediliyor...' : 'Kaydet' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Custom Modal Pop-up -->
+<div class="custom-modal-overlay" *ngIf="dialogState.isOpen" (click)="onDialogCancel()">
+  <div class="custom-modal-card" (click)="$event.stopPropagation()">
+    <div class="custom-modal-header">
+      <h3>{{ dialogState.title }}</h3>
+    </div>
+    
+    <div class="custom-modal-body">
+      <p>{{ dialogState.message }}</p>
+    </div>
+
+    <div class="custom-modal-footer">
+      <button 
+        *ngIf="dialogState.type !== 'alert'" 
+        type="button" 
+        class="modal-btn modal-btn-secondary" 
+        (click)="onDialogCancel()">
+        {{ dialogState.cancelText }}
+      </button>
+      <button 
+        type="button" 
+        class="modal-btn" 
+        [ngClass]="dialogState.type === 'danger' ? 'modal-btn-danger' : 'modal-btn-primary'" 
+        (click)="onDialogConfirm()">
+        {{ dialogState.confirmText }}
       </button>
     </div>
   </div>

@@ -27,6 +27,17 @@ interface ProjectFormState {
   customFields: Array<{ key: string; value: string }>;
 }
 
+interface ConfirmDialogState {
+  isOpen: boolean;
+  title: string;
+  message: string;
+  confirmText?: string;
+  cancelText?: string;
+  type?: 'confirm' | 'alert' | 'danger';
+  onConfirm?: () => void;
+  onCancel?: () => void;
+}
+
 @Component({
   selector: 'app-dashboard',
   standalone: true,
@@ -59,16 +70,25 @@ export class DashboardComponent implements OnInit {
   employees: any[] = [];
   isLoadingEmployees = false;
   hasEmployeeError = false;
-  
+
+  // Custom Modal Durumu
+  dialogState: ConfirmDialogState = {
+    isOpen: false,
+    title: '',
+    message: '',
+    confirmText: 'Evet',
+    cancelText: 'Vazgeç',
+    type: 'confirm',
+  };
+
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
       this.fetchProjects();
       this.fetchEmployees();
     }
-
     this.currentUser = this.authService.getUser();
   }
-  
+
   constructor(
     private projectService: ProjectService,
     private authService: AuthService,
@@ -81,7 +101,33 @@ export class DashboardComponent implements OnInit {
     this.role = this.authService.getRole() ?? this.router.getCurrentNavigation()?.extras?.state?.['role'] ?? null;
   }
 
-  // Görünüm modunu değiştiren fonksiyon
+  // Dialog Kontrol Metotları
+  openDialog(config: Omit<ConfirmDialogState, 'isOpen'>): void {
+    this.dialogState = {
+      isOpen: true,
+      confirmText: 'Evet',
+      cancelText: 'Vazgeç',
+      type: 'confirm',
+      ...config,
+    };
+  }
+
+  onDialogConfirm(): void {
+    const callback = this.dialogState.onConfirm;
+    this.closeDialog();
+    if (callback) callback();
+  }
+
+  onDialogCancel(): void {
+    const callback = this.dialogState.onCancel;
+    this.closeDialog();
+    if (callback) callback();
+  }
+
+  closeDialog(): void {
+    this.dialogState.isOpen = false;
+  }
+
   setViewMode(mode: 'grid' | 'table'): void {
     this.viewMode = mode;
   }
@@ -121,7 +167,7 @@ export class DashboardComponent implements OnInit {
         this.isLoading = false;
         this.hasError = true;
         console.error('Projeler çekilirken hata oluştu!', error);
-      }
+      },
     });
   }
 
@@ -151,9 +197,7 @@ export class DashboardComponent implements OnInit {
   }
 
   addProject(): void {
-    if (!this.isAdmin()) {
-      return;
-    }
+    if (!this.isAdmin()) return;
 
     this.editingProject = null;
     this.formState = this.createEmptyFormState();
@@ -175,13 +219,11 @@ export class DashboardComponent implements OnInit {
   }
 
   editProject(project: Project): void {
-    if (!this.isAdmin()) {
-      return;
-    }
+    if (!this.isAdmin()) return;
 
     this.editingProject = project;
     const customFields = project.customFields ? Object.entries(project.customFields).map(([key, value]) => ({ key, value })) : [];
-    const deSorumluArray = project.deSorumlu ? project.deSorumlu.split(',').map(s => s.trim()).filter(Boolean) : [];
+    const deSorumluArray = project.deSorumlu ? project.deSorumlu.split(',').map((s) => s.trim()).filter(Boolean) : [];
     this.formState = {
       ...project,
       deSorumlu: deSorumluArray,
@@ -200,13 +242,21 @@ export class DashboardComponent implements OnInit {
 
   closeEditor(): void {
     if (this.editingProject && this.isFormDirty()) {
-      const confirmed = confirm('Değişiklikleri kaydetmek ister misiniz?');
-      if (confirmed) {
-        this.saveProject();
-        return;
-      }
+      this.openDialog({
+        title: 'Kaydedilmemiş Değişiklikler',
+        message: 'Yaptığınız değişiklikleri kaydetmek ister misiniz?',
+        confirmText: 'Kaydet',
+        cancelText: 'Kaydetmeden Çık',
+        onConfirm: () => this.saveProject(),
+        onCancel: () => this.forceCloseEditor(),
+      });
+      return;
     }
 
+    this.forceCloseEditor();
+  }
+
+  private forceCloseEditor(): void {
     this.showEditor = false;
     this.editingProject = null;
     this.originalFormState = null;
@@ -226,9 +276,7 @@ export class DashboardComponent implements OnInit {
   }
 
   isFormDirty(): boolean {
-    if (!this.originalFormState) {
-      return false;
-    }
+    if (!this.originalFormState) return false;
 
     const currentValue = JSON.stringify(this.cloneFormState(this.formState));
     const originalValue = JSON.stringify(this.cloneFormState(this.originalFormState));
@@ -236,14 +284,17 @@ export class DashboardComponent implements OnInit {
   }
 
   saveProject(): void {
-    if (!this.isAdmin()) {
-      return;
-    }
+    if (!this.isAdmin()) return;
 
     if (!this.formState.uygulamaAdi || !this.formState.uygulamaAdi.trim()) {
-    alert('Lütfen uygulama adını giriniz.'); // veya projenizdeki bildirim/toast servisi
-    return;
-  }
+      this.openDialog({
+        title: 'Eksik Bilgi',
+        message: 'Lütfen uygulama adını giriniz.',
+        type: 'alert',
+        confirmText: 'Tamam',
+      });
+      return;
+    }
 
     this.isSaving = true;
     const customFieldsObject = this.formState.customFields.reduce<Record<string, string>>((acc, field) => {
@@ -253,7 +304,6 @@ export class DashboardComponent implements OnInit {
       return acc;
     }, {});
 
-    // Convert multi-select developers back to comma-separated string for API
     const deSorumluValue = Array.isArray(this.formState.deSorumlu) ? this.formState.deSorumlu.join(', ') : (this.formState.deSorumlu as any);
 
     const payload = {
@@ -269,16 +319,13 @@ export class DashboardComponent implements OnInit {
     request.subscribe({
       next: () => {
         this.isSaving = false;
-        this.showEditor = false;
-        this.editingProject = null;
-        this.originalFormState = null;
-        this.formState = this.createEmptyFormState();
+        this.forceCloseEditor();
         this.fetchProjects();
       },
       error: (error) => {
         this.isSaving = false;
         console.error('Proje kaydedilirken hata oluştu', error);
-      }
+      },
     });
   }
 
@@ -304,28 +351,44 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-  deleteProject(projectId: number): void {
-    if (!this.isAdmin()) {
-      return;
-    }
+  deleteProject(projectOrId: Project | number): void {
+    if (!this.isAdmin()) return;
 
-    if (confirm('Bu projeyi aktif/pasif yapmak istediğinize emin misiniz?')) {
-      this.projectService.deleteProject(projectId).subscribe({
-        next: () => {
-          this.fetchProjects();
-        },
-        error: (error) => {
-          console.error('Proje aktif/pasif yapılırken hata oluştu', error);
-        }
-      });
-    }
+    const project = typeof projectOrId === 'number'
+      ? this.projects.find((p) => p.id === projectOrId)
+      : projectOrId;
+
+    const projectId = typeof projectOrId === 'number' ? projectOrId : project?.id;
+    if (!projectId) return;
+
+    const isCurrentlyActive = project?.aktifPasif === 'A';
+    const targetStatus = isCurrentlyActive ? 'pasif' : 'aktif';
+    const projectName = project?.uygulamaAdi ? `"${project.uygulamaAdi}"` : 'Bu';
+
+    this.openDialog({
+      title: `Projeyi ${targetStatus}leştir`,
+      message: `${projectName} projesini ${targetStatus} duruma getirmek istediğinize emin misiniz?`,
+      type: isCurrentlyActive ? 'danger' : 'confirm',
+      confirmText: 'Onayla',
+      cancelText: 'Vazgeç',
+      onConfirm: () => {
+        this.projectService.deleteProject(projectId).subscribe({
+          next: () => this.fetchProjects(),
+          error: (error) => console.error(`Proje ${targetStatus} yapılırken hata oluştu`, error),
+        });
+      },
+    });
   }
 
   onLogout(): void {
-    const confirmed = confirm('Çıkış yapmak istediğinizden emin misiniz?');
-    if (confirmed) {
-      this.authService.logout();
-    }
+    this.openDialog({
+      title: 'Çıkış Yap',
+      message: 'Oturumunuzu kapatmak istediğinize emin misiniz?',
+      confirmText: 'Çıkış Yap',
+      cancelText: 'İptal',
+      type: 'danger',
+      onConfirm: () => this.authService.logout(),
+    });
   }
 
   onSearchChange(): void {
@@ -343,13 +406,10 @@ export class DashboardComponent implements OnInit {
 
   applyFiltersAndSorting(): void {
     const term = this.searchTerm.toLowerCase().trim();
-
     this.aktifs = this.projects.filter((project) => project.aktifPasif === 'A').length;
 
     this.filteredProjects = this.projects.filter((project) => {
-      if (!term) {
-        return true;
-      }
+      if (!term) return true;
 
       if (this.searchField === 'all') {
         return (
@@ -379,33 +439,23 @@ export class DashboardComponent implements OnInit {
     const aValue = this.normalizeSortValue((a as any)[field]);
     const bValue = this.normalizeSortValue((b as any)[field]);
 
-    if (aValue < bValue) {
-      return this.sortDirection === 'asc' ? -1 : 1;
-    }
-    if (aValue > bValue) {
-      return this.sortDirection === 'asc' ? 1 : -1;
-    }
+    if (aValue < bValue) return this.sortDirection === 'asc' ? -1 : 1;
+    if (aValue > bValue) return this.sortDirection === 'asc' ? 1 : -1;
     return 0;
   }
 
   normalizeSortValue(value: unknown): string {
-    if (value === null || value === undefined) {
-      return '';
-    }
+    if (value === null || value === undefined) return '';
     return String(value).toLowerCase();
   }
 
   truncateText(value: string | null | undefined, maxLength = 30): string {
-    if (!value) {
-      return '';
-    }
+    if (!value) return '';
     return value.length > maxLength ? `${value.slice(0, maxLength)}...` : value;
   }
 
   getCustomFieldsText(project: Project): string {
-    if (!project.customFields) {
-      return '';
-    }
+    if (!project.customFields) return '';
     return Object.entries(project.customFields)
       .map(([key, value]) => `${key}: ${value}`)
       .join(', ');
