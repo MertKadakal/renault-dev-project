@@ -1,6 +1,0 @@
-projectKey=renault-test
-serverUrl=http://localhost:9000
-serverVersion=26.8.0.126808
-dashboardUrl=http://localhost:9000/dashboard?id=renault-test
-ceTaskId=99bd495e-18ca-4c13-b82b-813fa70965de
-ceTaskUrl=http://localhost:9000/api/ce/task?id=99bd495e-18ca-4c13-b82b-813fa70965de
