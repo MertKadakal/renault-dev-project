@@ -1,4 +1,4 @@
-import { IsNotEmpty, isString, IsString, Matches, MinLength } from 'class-validator';
+import { IsNotEmpty, IsString, Matches } from 'class-validator';
 
 export class LoginDto {
   @IsString({ message: ' Kullanıcı adı metin tipinde olmalıdır' })
