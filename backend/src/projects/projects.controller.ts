@@ -42,7 +42,10 @@ export class ProjectsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   @Put(':id')
-  update(@Param('id') id: string, @Body() updateProjectDto: any) {
+  update(
+    @Param('id') id: string,
+    @Body() updateProjectDto: Partial<Project>,
+  ): Promise<Project> {
     return this.projectsService.update(+id, updateProjectDto);
   }
 

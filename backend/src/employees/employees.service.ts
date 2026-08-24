@@ -31,7 +31,7 @@ export interface RawEmployee {
   SuperiorPositionCode: string | null;
   TitleCode: string | null;
   SuperiorTitleCode: string | null;
-  Mids: unknown | null;
+  /*Mids: unknown | null;*/
   Category: string | null;
   CostCenter: string;
   Workplace: string;
@@ -46,7 +46,7 @@ export interface RawEmployee {
   Scategory: string | null;
   CompanyCode: string;
   UniqueId: string;
-  ValidCertificates: unknown | null;
+  /*ValidCertificates: unknown | null;*/
   Nationality: string;
   HighschoolField: string | null;
   HighschoolGraduation: string | null;

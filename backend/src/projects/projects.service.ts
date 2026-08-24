@@ -44,7 +44,7 @@ export class ProjectsService {
     } catch (error) {
       throw new InternalServerErrorException({
         message: 'Proje eklenemedi.',
-        detail: error instanceof Error ? error.message : error,
+        detail: error instanceof Error ? error.message : String(error),
       });
     }
   }
@@ -95,7 +95,7 @@ export class ProjectsService {
     for (const [key, value] of Object.entries(payload)) {
       const targetKey = PROJECT_ALIASES[key];
       if (targetKey && value !== undefined) {
-        (normalized as any)[targetKey] = value;
+        (normalized as Record<string, unknown>)[targetKey] = value;
       }
     }
 

@@ -23,4 +23,7 @@ async function bootstrap() {
   app.setGlobalPrefix('api'); // Tüm API endpoint'leri /api ile başlar
   await app.listen(3000);
 }
-bootstrap();
+bootstrap().catch((err) => {
+  console.error('Uygulama başlatılırken hata oluştu:', err);
+  process.exit(1);
+});
