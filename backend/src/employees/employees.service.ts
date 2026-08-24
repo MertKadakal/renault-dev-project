@@ -21,7 +21,10 @@ export class EmployeesService {
 
   async getEmployees(): Promise<any[]> {
     // 1. Cache geçerliyse doğrudan bellekten dön
-    if (this.employeeCache && Date.now() - this.cacheTimestamp < this.CACHE_TTL) {
+    if (
+      this.employeeCache &&
+      Date.now() - this.cacheTimestamp < this.CACHE_TTL
+    ) {
       return this.employeeCache;
     }
 
@@ -43,7 +46,9 @@ export class EmployeesService {
   private async fetchAndProcessEmployees(): Promise<any[]> {
     const url = this.configService.get<string>('EMPLOYEES_API_URL');
     if (!url) {
-      throw new Error('API url for emploeyees is not defined in the environment variables.');
+      throw new Error(
+        'API url for emploeyees is not defined in the environment variables.',
+      );
     }
 
     try {
@@ -55,12 +60,12 @@ export class EmployeesService {
       let list: any[] = [];
       if (Array.isArray(data)) {
         list = data;
-      } else if (data && Array.isArray((data as any).employees)) {
-        list = (data as any).employees;
-      } else if (data && Array.isArray((data as any).data)) {
-        list = (data as any).data;
-      } else if (data && Array.isArray((data as any).items)) {
-        list = (data as any).items;
+      } else if (data && Array.isArray(data.employees)) {
+        list = data.employees;
+      } else if (data && Array.isArray(data.data)) {
+        list = data.data;
+      } else if (data && Array.isArray(data.items)) {
+        list = data.items;
       } else if (data && typeof data === 'object') {
         list = Object.values(data).filter((v) => v && typeof v === 'object');
       }
@@ -78,7 +83,8 @@ export class EmployeesService {
 
       return normalizedList;
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Bilinmeyen hata';
+      const message =
+        error instanceof Error ? error.message : 'Bilinmeyen hata';
       this.logger.error('Çalışan verileri çekilirken hata oluştu:', message);
       throw error;
     }

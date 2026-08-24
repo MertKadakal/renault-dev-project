@@ -10,21 +10,31 @@ export interface LdapConfig {
   domain: string;
 }
 
-// Statik kullanıcı tanımları
-const STATIC_USERS: Record<string, { pass: string; role: string; cn: string }> = {
-  admin: {
-    pass: 'admin123',
-    role: 'admin',
-    cn: 'Statik Admin',
-  },
-  user: {
-    pass: 'user123',
-    role: 'user',
-    cn: 'Statik Kullanıcı',
-  },
-};
+export interface LdapUser {
+  username: string;
+  role: string;
+  cn: string;
+  dn: string;
+}
 
-export function resolveLdapConfig(env: NodeJS.ProcessEnv = process.env): LdapConfig {
+// Statik kullanıcı tanımları
+const STATIC_USERS: Record<string, { pass: string; role: string; cn: string }> =
+  {
+    admin: {
+      pass: 'admin123',
+      role: 'admin',
+      cn: 'Statik Admin',
+    },
+    user: {
+      pass: 'user123',
+      role: 'user',
+      cn: 'Statik Kullanıcı',
+    },
+  };
+
+export function resolveLdapConfig(
+  env: NodeJS.ProcessEnv = process.env,
+): LdapConfig {
   return {
     url: env.LDAP_URL || 'ldap://10.237.139.93:389',
     domain: env.LDAP_DOMAIN || 'CORP',
@@ -37,7 +47,7 @@ export class LdapService {
     return resolveLdapConfig();
   }
 
-  async validateUser(username: string, pass: string): Promise<any> {
+  async validateUser(username: string, pass: string): Promise<LdapUser | null> {
     const normalizedUsername = username?.trim();
     const normalizedPass = pass?.trim();
 
@@ -64,9 +74,15 @@ export class LdapService {
     const client = new Client({ url: config.url });
 
     try {
-      await client.bind(`${config.domain}\\${normalizedUsername}`, normalizedPass);
+      await client.bind(
+        `${config.domain}\\${normalizedUsername}`,
+        normalizedPass,
+      );
 
-      const role = normalizedUsername === 'at01093' || normalizedUsername === 'at03178' ? 'admin' : 'user';
+      const role =
+        normalizedUsername === 'at01093' || normalizedUsername === 'at03178'
+          ? 'admin'
+          : 'user';
 
       return {
         username: normalizedUsername,
@@ -78,9 +94,9 @@ export class LdapService {
       const rawMessage = error?.message || error?.toString() || '';
 
       // LDAP "Invalid credentials" veya AD "data 52e" içeriyor mu kontrolü
-      const isInvalidCredentials = 
-        rawMessage.includes('Invalid credentials') || 
-        rawMessage.includes('data 52e') || 
+      const isInvalidCredentials =
+        rawMessage.includes('Invalid credentials') ||
+        rawMessage.includes('data 52e') ||
         rawMessage.includes('80090308');
 
       if (isInvalidCredentials) {

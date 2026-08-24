@@ -1,4 +1,8 @@
-import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Project } from './entities/project.entity';
@@ -56,7 +60,10 @@ export class ProjectsService {
   }
 
   // 2. Tekrarlanan lookup yerine this.findOne(id) kullanıldı
-  async update(id: number, updateProjectDto: Partial<Project>): Promise<Project> {
+  async update(
+    id: number,
+    updateProjectDto: Partial<Project>,
+  ): Promise<Project> {
     const project = await this.findOne(id);
 
     const normalized = this.normalizeProjectPayload(updateProjectDto);
@@ -78,7 +85,9 @@ export class ProjectsService {
 
     // customFields kontrolünü tek satırda halledin
     normalized.customFields =
-      payload.customFields && typeof payload.customFields === 'object' && !Array.isArray(payload.customFields)
+      payload.customFields &&
+      typeof payload.customFields === 'object' &&
+      !Array.isArray(payload.customFields)
         ? payload.customFields
         : {};
 

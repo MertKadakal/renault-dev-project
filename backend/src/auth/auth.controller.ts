@@ -14,9 +14,17 @@ export class AuthController {
   @Post('login')
   async login(@Body() body: LoginDto): Promise<any> {
     try {
-      const user = await this.ldapService.validateUser(body.username, body.pass);
+      const user = await this.ldapService.validateUser(
+        body.username,
+        body.pass,
+      );
 
-      const payload = { username: user.username, sub: user.dn, name: user.cn, role: user.role };
+      const payload = {
+        username: user.username,
+        sub: user.dn,
+        name: user.cn,
+        role: user.role,
+      };
       const accessToken = this.jwtService.sign(payload);
 
       return {
@@ -29,7 +37,8 @@ export class AuthController {
       };
     } catch (error) {
       console.error('Giriş hatası:', error);
-      const message = error instanceof Error ? error.message : 'Giriş başarısız';
+      const message =
+        error instanceof Error ? error.message : 'Giriş başarısız';
       throw new UnauthorizedException(message);
     }
   }

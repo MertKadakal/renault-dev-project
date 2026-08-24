@@ -5,7 +5,8 @@ export class LoginDto {
   @IsNotEmpty({ message: ' Kullanıcı adı boş bırakılamaz' })
   @Matches(/^([a-zA-Z]{2}\d{5}|admin|user)$/, {
     message: ' Kullanıcı adı at00000 formatında olmalıdır',
-  })  username: string;
+  })
+  username: string;
 
   @IsString({ message: ' Şifre metin tipinde olmalıdır' })
   @IsNotEmpty({ message: ' Şifre boş bırakılamaz' })

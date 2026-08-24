@@ -1,4 +1,9 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity('projects', { schema: 'public' })
 export class Project {
@@ -50,7 +55,12 @@ export class Project {
   @Column({ nullable: true })
   complexity: string;
 
-  @Column({ name: 'custom_fields', type: 'jsonb', nullable: true, default: () => "'{}'::jsonb" })
+  @Column({
+    name: 'custom_fields',
+    type: 'jsonb',
+    nullable: true,
+    default: () => "'{}'::jsonb",
+  })
   customFields: Record<string, string>;
 
   @CreateDateColumn({ name: 'created_at' })
