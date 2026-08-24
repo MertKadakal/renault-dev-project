@@ -19,6 +19,10 @@ export class AuthController {
         body.pass,
       );
 
+      if (!user) {
+        throw new UnauthorizedException('Kullanıcı adı veya şifre hatalı.');
+      }
+
       const payload = {
         username: user.username,
         sub: user.dn,

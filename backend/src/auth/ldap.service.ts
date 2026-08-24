@@ -90,8 +90,21 @@ export class LdapService {
         dn: `CN=${normalizedUsername},OU=Users,DC=${config.domain.toLowerCase()},DC=local`,
         role,
       };
-    } catch (error: any) {
-      const rawMessage = error?.message || error?.toString() || '';
+    } catch (error: unknown) {
+      let rawMessage = '';
+
+      if (error instanceof Error) {
+        rawMessage = error.message;
+      } else if (typeof error === 'string') {
+        rawMessage = error;
+      } else if (
+        typeof error === 'object' &&
+        error !== null &&
+        'message' in error &&
+        typeof (error as Record<string, unknown>).message === 'string'
+      ) {
+        rawMessage = (error as { message: string }).message;
+      }
 
       // LDAP "Invalid credentials" veya AD "data 52e" içeriyor mu kontrolü
       const isInvalidCredentials =

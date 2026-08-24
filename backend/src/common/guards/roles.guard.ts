@@ -1,6 +1,13 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { Request } from 'express';
 import { ROLES_KEY } from '../decorators/roles.decorator';
+// LdapUser interface'inizin bulunduğu dosya yolunu belirtin:
+import { LdapUser } from '../../auth/ldap.service';
+
+interface AuthenticatedRequest extends Request {
+  user?: LdapUser;
+}
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -16,8 +23,8 @@ export class RolesGuard implements CanActivate {
       return true;
     }
 
-    const { user } = context.switchToHttp().getRequest();
+    const { user } = context.switchToHttp().getRequest<AuthenticatedRequest>();
 
-    return requiredRoles.includes(user?.role);
+    return Boolean(user?.role && requiredRoles.includes(user.role));
   }
 }

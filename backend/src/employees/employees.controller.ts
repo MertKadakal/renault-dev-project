@@ -1,5 +1,6 @@
 import { Controller, Get, UseGuards } from '@nestjs/common';
-import { EmployeesService } from './employees.service';
+// [DEĞİŞİKLİK] Servisten dönen açık tip (NormalizedEmployee) import edildi
+import { EmployeesService, NormalizedEmployee } from './employees.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 
 @Controller('employees')
@@ -8,7 +9,8 @@ export class EmployeesController {
 
   @UseGuards(JwtAuthGuard)
   @Get()
-  async getEmployees() {
+  // [DEĞİŞİKLİK] 'no-unsafe-return' hatasını önlemek için açık dönüş tipi (Promise<NormalizedEmployee[]>) eklendi
+  async getEmployees(): Promise<NormalizedEmployee[]> {
     return await this.employeesService.getEmployees();
   }
 }
