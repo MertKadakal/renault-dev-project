@@ -8,9 +8,9 @@ import { Observable, tap } from 'rxjs';
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:3000/api/auth/login';
+  private readonly apiUrl = 'http://localhost:3000/api/auth/login';
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(private readonly http: HttpClient, private readonly router: Router) {}
 
   login(username: string, pass: string): Observable<any> {
     return this.http.post<any>(this.apiUrl, { username, pass }).pipe(

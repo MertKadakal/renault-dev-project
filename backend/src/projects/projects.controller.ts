@@ -1,9 +1,9 @@
 import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards } from '@nestjs/common';
-import { Project } from './entities/project.entity';
-import { ProjectsService } from './projects.service';
+import { Roles } from '../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
-import { Roles } from '../common/decorators/roles.decorator';
+import { Project } from './entities/project.entity';
+import { ProjectsService } from './projects.service';
 
 @Controller('projects')
 export class ProjectsController {

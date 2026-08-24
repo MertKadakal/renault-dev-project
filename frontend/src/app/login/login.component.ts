@@ -45,7 +45,7 @@ export class LoginComponent implements OnInit {
     this.randomBgImage = `url('${this.carImages[randomIndex]}')`;
   }
 
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(private readonly authService: AuthService, private readonly router: Router) {}
 
   onLogin() {
     this.authService.login(this.username, this.password).subscribe({

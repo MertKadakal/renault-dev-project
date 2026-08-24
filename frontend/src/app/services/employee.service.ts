@@ -6,7 +6,7 @@ import { firstValueFrom } from 'rxjs';
   providedIn: 'root',
 })
 export class EmployeeService {
-  private http = inject(HttpClient);
+  private readonly http = inject(HttpClient);
   
   // NestJS backend controller adresiniz (veya '/api/employees')
   private readonly apiUrl = 'http://localhost:3000/api/employees'; 

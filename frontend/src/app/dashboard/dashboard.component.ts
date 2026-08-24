@@ -1,12 +1,11 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
 import { ChangeDetectorRef, Component, Inject, OnInit, PLATFORM_ID } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Project } from '../models/project';
 import { AuthService } from '../services/auth.service';
-import { ProjectService } from '../services/project.service';
 import { EmployeeService } from '../services/employee.service';
+import { ProjectService } from '../services/project.service';
 
 interface ProjectFormState {
   uygulamaAdi?: string;
@@ -90,13 +89,12 @@ export class DashboardComponent implements OnInit {
   }
 
   constructor(
-    private projectService: ProjectService,
-    private authService: AuthService,
-    private router: Router,
-    private http: HttpClient,
-    private employeeService: EmployeeService,
-    @Inject(PLATFORM_ID) private platformId: Object,
-    private cdr: ChangeDetectorRef
+    private readonly cdr: ChangeDetectorRef,
+    private readonly projectService: ProjectService,
+    private readonly authService: AuthService,
+    private readonly router: Router,
+    private readonly employeeService: EmployeeService,
+    @Inject(PLATFORM_ID) private readonly platformId: Object,
   ) {
     this.role = this.authService.getRole() ?? this.router.getCurrentNavigation()?.extras?.state?.['role'] ?? null;
   }
@@ -272,7 +270,7 @@ export class DashboardComponent implements OnInit {
   }
 
   cloneFormState(state: ProjectFormState): ProjectFormState {
-    return JSON.parse(JSON.stringify(state));
+    return structuredClone(state);
   }
 
   isFormDirty(): boolean {
@@ -286,7 +284,7 @@ export class DashboardComponent implements OnInit {
   saveProject(): void {
     if (!this.isAdmin()) return;
 
-    if (!this.formState.uygulamaAdi || !this.formState.uygulamaAdi.trim()) {
+    if (!this.formState.uygulamaAdi?.trim()) {
       this.openDialog({
         title: 'Eksik Bilgi',
         message: 'Lütfen uygulama adını giriniz.',

@@ -7,9 +7,9 @@ import { Project } from '../models/project';
   providedIn: 'root'
 })
 export class ProjectService {
-  private apiUrl = 'http://localhost:3000/api/projects/';
+  private readonly apiUrl = 'http://localhost:3000/api/projects/';
 
-  constructor(private http: HttpClient) { }
+  constructor(private readonly http: HttpClient) { }
 
   getProjects(): Observable<Project[]> {
     return this.http.get<any>(this.apiUrl).pipe(
