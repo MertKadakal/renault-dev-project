@@ -1,9 +1,6 @@
 <div class="dashboard-shell">
   <section class="hero-card" style="display: flex; align-items: center; justify-content: space-between;">
 
-
-    <!-- Ya da listedeki tek bir proje kartı/satırı için tıklanırsa -->
-    <!-- <button (click)="generateAndLogTempLink(project)">Bu Projeyi Paylaş</button> -->
     <!-- SOL KISIM: Başlıklar -->
     <div class="hero-title">
       <p class="eyebrow">Oyak Renault</p>
@@ -462,27 +459,27 @@
       </label>
       
       <!-- DÜZENLENMİŞ HTML -->
-<label class="full-width">
-  Devs
-  <div class="selected-chips" *ngIf="formState.deSorumlu && formState.deSorumlu.length">
-    <span class="chip" *ngFor="let d of formState.deSorumlu">
-      {{ d }} <button type="button" class="chip-remove" (click)="removeDeveloper(d)">×</button>
-    </span>
-  </div>
-  <div class="developer-list">
-    <button
-      type="button"
-      *ngFor="let emp of employees"
-      class="developer-item"
-      [class.selected]="isDeveloperSelected(emp.Name + ' ' + emp.Surname)"
-      (click)="toggleDeveloper(emp.Name + ' ' + emp.Surname)">
-      {{ emp.Name }} {{ emp.Surname }}
-    </button>
-  </div>
-  <div class="info-text" *ngIf="!employees || employees.length === 0">
-    developer listesi bekleniyor...
-  </div>
-</label>
+      <div class="full-width">
+        Devs
+        <div class="selected-chips" *ngIf="formState.deSorumlu && formState.deSorumlu.length">
+          <span class="chip" *ngFor="let d of formState.deSorumlu">
+            {{ d }} <button type="button" class="chip-remove" (click)="removeDeveloper(d)">×</button>
+          </span>
+        </div>
+        <div class="developer-list">
+          <button
+            type="button"
+            *ngFor="let emp of employees"
+            class="developer-item"
+            [class.selected]="isDeveloperSelected(emp.Name + ' ' + emp.Surname)"
+            (click)="toggleDeveloper(emp.Name + ' ' + emp.Surname)">
+            {{ emp.Name }} {{ emp.Surname }}
+          </button>
+        </div>
+        <div class="info-text" *ngIf="!employees || employees.length === 0">
+          developer listesi bekleniyor...
+        </div>
+      </div>
 
       <div class="custom-fields">
         <div class="custom-fields-header">

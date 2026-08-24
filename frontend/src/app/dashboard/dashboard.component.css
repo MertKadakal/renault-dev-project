@@ -104,8 +104,9 @@
 }
 
 .danger-btn {
-  background: #fef2f2;
-  color: #dc2626;
+  background-color: #fef2f2;
+  color: #b91c1c; /* Kontrast oranı: ~5.6:1 (WCAG AA geçer) */
+  border: 1px solid #fecaca; /* İsteğe bağlı: Buton sınırlarını belirginleştirmek için */
 }
 
 .user-info {
