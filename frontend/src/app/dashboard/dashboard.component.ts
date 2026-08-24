@@ -7,6 +7,55 @@ import { AuthService } from '../services/auth.service';
 import { EmployeeService } from '../services/employee.service';
 import { ProjectService } from '../services/project.service';
 
+export interface Employee {
+  Ipn: string;
+  Identifier: string;
+  Name: string;
+  Surname: string;
+  Email: string;
+  DirectionCode: string;
+  DepartmentCode: string;
+  SuperiorIdentifier: string | null;
+  SuperiorIpn: string | null;
+  SuperiorName: string | null;
+  SuperiorSurname: string | null;
+  PhoneNumber1: string | null;
+  PhoneNumber2: string | null;
+  EmployeeType: string;
+  Gender: string;
+  StartDate: string;
+  BirthDate: string;
+  Quit: boolean;
+  QuitDate: string | null;
+  DepartmentName: string;
+  DirectionName: string;
+  PositionCode: string;
+  SuperiorPositionCode: string | null;
+  TitleCode: string | null;
+  SuperiorTitleCode: string | null;
+  /*Mids: unknown | null;*/
+  Category: string | null;
+  CostCenter: string;
+  Workplace: string;
+  HighSchool: string | null;
+  University: string | null;
+  TfiScore: string | null;
+  ToeicScore: string | null;
+  ShiftCode: string | null;
+  MissionCode: string | null;
+  CitizenshipNumber: string;
+  Level: string | null;
+  Scategory: string | null;
+  CompanyCode: string;
+  UniqueId: string;
+  /*ValidCertificates: unknown | null;*/
+  Nationality: string;
+  HighschoolField: string | null;
+  HighschoolGraduation: string | null;
+  SuperiorDepartmentName: string | null;
+  [key: string]: unknown;
+}
+
 interface ProjectFormState {
   uygulamaAdi?: string;
   sektorluk?: string;
@@ -66,7 +115,7 @@ export class DashboardComponent implements OnInit {
   employerOptions: string[] = [];
   readonly textLimit: number = 30;
   viewMode: 'grid' | 'table' = 'grid';
-  employees: any[] = [];
+  employees: Employee[] = [];
   isLoadingEmployees = false;
   hasEmployeeError = false;
 
