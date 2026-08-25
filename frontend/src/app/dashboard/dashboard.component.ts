@@ -622,4 +622,66 @@ export class DashboardComponent implements OnInit {
     };
   }
 
+  // Fare ile üzerine gelinen dilim ve koordinat bilgisi
+  hoveredSlice: {
+    chartType: string;
+    stat: ChartStat | null;
+    x: number;
+    y: number;
+  } | null = null;
+
+  // Fare pasta grafiği üzerinde hareket ettiğinde açıyı ve ilgili dilimi hesaplar
+  onChartMouseMove(event: MouseEvent, stats: ChartStat[], chartType: string): void {
+    if (!stats || stats.length === 0) return;
+
+    const target = event.currentTarget as HTMLElement;
+    const rect = target.getBoundingClientRect();
+
+    // Dairenin merkez noktası
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+
+    const dx = event.clientX - centerX;
+    const dy = event.clientY - centerY;
+
+    // Conic-gradient saat 12 yönünden (üstten) başlayıp saat yönünde ilerler
+    let deg = (Math.atan2(dy, dx) * (180 / Math.PI)) + 90;
+    if (deg < 0) {
+      deg += 360;
+    }
+
+    // Açıyı yüzdeye çevir (%0 - %100)
+    const mousePercentage = (deg / 360) * 100;
+
+    // Hangi dilim aralığına denk geldiğini bul
+    let currentPercentage = 0;
+    let foundStat: ChartStat | null = null;
+
+    for (const stat of stats) {
+      const nextPercentage = currentPercentage + stat.percentage;
+      if (mousePercentage >= currentPercentage && mousePercentage <= nextPercentage) {
+        foundStat = stat;
+        break;
+      }
+      currentPercentage = nextPercentage;
+    }
+
+    // Son dilimdeki ufak ondalık yuvarlama sapmalarını yakalamak için
+    if (!foundStat && stats.length > 0) {
+      foundStat = stats[stats.length - 1];
+    }
+
+    this.hoveredSlice = {
+      chartType,
+      stat: foundStat,
+      x: event.clientX,
+      y: event.clientY
+    };
+  }
+
+  // Fare grafikten çıktığında tooltip'i gizle
+  onChartMouseLeave(): void {
+    this.hoveredSlice = null;
+  }
+
 }

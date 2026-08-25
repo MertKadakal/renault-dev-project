@@ -168,7 +168,7 @@
 
       <div *ngIf="isLoading" class="state-box loading">Yükleniyor...</div>
       <div *ngIf="!isLoading && hasError" class="state-box error">Projeler yüklenirken bir hata oluştu.</div>
-      <div *ngIf="!isLoading && !hasError && projects.length > 0 && filteredProjects.length === 0" class="state-box empty">
+      <div *ngIf="!isLoading && !hasError && projects.length > 0 && filteredProjects.length === 0" class="state-box empty" style="font-style: italic;">
         Aramanıza uygun proje bulunamadı.
       </div>
       <div *ngIf="!isLoading && !hasError && projects.length === 0" class="state-box empty">
@@ -289,94 +289,126 @@
 
   <!-- 2. SEKME: İSTATİSTİKLER -->
   <div *ngIf="activeTab === 'statistics'" class="tab-content" style="display: flex; flex-direction: column; gap: 24px; animation: fadeIn 0.4s ease-out forwards;">
-    <section class="hero-card" style="min-height: 400px; display: flex; flex-direction: column;">
+  <section class="hero-card" style="min-height: 400px; display: flex; flex-direction: column;">
+    
+    <div *ngIf="filteredProjects.length === 0" style="color: #666; font-style: italic; text-align: center;" class="state-box empty">
+      Grafik oluşturmak için uygun veri bulunamadı.
+    </div>
+
+    <!-- GRAFİKLER GRİDİ -->
+    <div *ngIf="filteredProjects.length > 0" 
+         style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; padding: 12px;">
       
-      <div class="hero-title" style="margin-bottom: 24px;">
-        <h2>Proje İstatistikleri</h2>
-        <p class="subtitle">Projelerin teknoloji ve özellik dağılımları</p>
+      <!-- BACKEND GRAFİĞİ -->
+      <div class="chart-card" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); display: flex; flex-direction: column; align-items: center; gap: 20px;">
+        <h3 style="color: #1e293b; font-size: 17px; font-weight: 600; margin: 0; padding-bottom: 8px; border-bottom: 2px solid #f1f5f9; width: 100%; text-align: center;">Backend Dağılımı</h3>
+        <div [style.backgroundImage]="backendGradient" 
+             (mousemove)="onChartMouseMove($event, backendStats, 'backend')"
+             (mouseleave)="onChartMouseLeave()"
+             style="width: 180px; height: 180px; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.1); cursor: crosshair; transition: transform 0.2s ease;">
+        </div>
+        <div class="chart-legend" style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; font-size: 13px; margin-top: auto;">
+          <div *ngFor="let stat of backendStats" style="display: flex; align-items: center; gap: 6px; background: #f8fafc; padding: 4px 8px; border-radius: 6px; border: 1px solid #f1f5f9;">
+            <span [style.backgroundColor]="stat.color" style="width: 10px; height: 10px; border-radius: 2px;"></span>
+            <span style="color: #334155; font-weight: 500;">{{ stat.name }} <span style="color: #64748b; font-size: 12px;">(%{{ stat.percentage }})</span></span>
+          </div>
+        </div>
       </div>
-      
-      <div *ngIf="filteredProjects.length === 0" style="color: #666; font-style: italic; text-align: center;">
-        Grafik oluşturmak için uygun veri bulunamadı.
+
+      <!-- FRONTEND GRAFİĞİ -->
+      <div class="chart-card" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); display: flex; flex-direction: column; align-items: center; gap: 20px;">
+        <h3 style="color: #1e293b; font-size: 17px; font-weight: 600; margin: 0; padding-bottom: 8px; border-bottom: 2px solid #f1f5f9; width: 100%; text-align: center;">Frontend Dağılımı</h3>
+        <div [style.backgroundImage]="frontendGradient" 
+             (mousemove)="onChartMouseMove($event, frontendStats, 'frontend')"
+             (mouseleave)="onChartMouseLeave()"
+             style="width: 180px; height: 180px; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.1); cursor: crosshair; transition: transform 0.2s ease;">
+        </div>
+        <div class="chart-legend" style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; font-size: 13px; margin-top: auto;">
+          <div *ngFor="let stat of frontendStats" style="display: flex; align-items: center; gap: 6px; background: #f8fafc; padding: 4px 8px; border-radius: 6px; border: 1px solid #f1f5f9;">
+            <span [style.backgroundColor]="stat.color" style="width: 10px; height: 10px; border-radius: 2px;"></span>
+            <span style="color: #334155; font-weight: 500;">{{ stat.name }} <span style="color: #64748b; font-size: 12px;">(%{{ stat.percentage }})</span></span>
+          </div>
+        </div>
       </div>
 
-      <!-- GRAFİKLERİ YAN YANA / ALT ALTA DİZECEK GRID YAPISI -->
-      <div *ngIf="filteredProjects.length > 0" 
-           style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 40px; padding: 20px;">
-        
-        <!-- BACKEND GRAFİĞİ -->
-        <div class="chart-container" style="display: flex; flex-direction: column; align-items: center; gap: 20px;">
-          <h3 style="color: #333; font-size: 18px;">Backend</h3>
-          <div [style.backgroundImage]="backendGradient" 
-               style="width: 200px; height: 200px; border-radius: 50%; box-shadow: 0 4px 15px rgba(0,0,0,0.15); transition: background-image 0.4s ease-in-out;">
-          </div>
-          <div class="chart-legend" style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; font-size: 13px;">
-            <div *ngFor="let stat of backendStats" style="display: flex; align-items: center; gap: 6px;">
-              <span [style.backgroundColor]="stat.color" style="width: 12px; height: 12px; border-radius: 3px;"></span>
-              <span>{{ stat.name }} <span style="color: #777;">(%{{ stat.percentage }})</span></span>
-            </div>
+      <!-- SEKTÖR GRAFİĞİ -->
+      <div class="chart-card" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); display: flex; flex-direction: column; align-items: center; gap: 20px;">
+        <h3 style="color: #1e293b; font-size: 17px; font-weight: 600; margin: 0; padding-bottom: 8px; border-bottom: 2px solid #f1f5f9; width: 100%; text-align: center;">Sektörlük Dağılımı</h3>
+        <div [style.backgroundImage]="sektorlukGradient" 
+             (mousemove)="onChartMouseMove($event, sektorlukStats, 'sektorluk')"
+             (mouseleave)="onChartMouseLeave()"
+             style="width: 180px; height: 180px; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.1); cursor: crosshair; transition: transform 0.2s ease;">
+        </div>
+        <div class="chart-legend" style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; font-size: 13px; margin-top: auto;">
+          <div *ngFor="let stat of sektorlukStats" style="display: flex; align-items: center; gap: 6px; background: #f8fafc; padding: 4px 8px; border-radius: 6px; border: 1px solid #f1f5f9;">
+            <span [style.backgroundColor]="stat.color" style="width: 10px; height: 10px; border-radius: 2px;"></span>
+            <span style="color: #334155; font-weight: 500;">{{ stat.name }} <span style="color: #64748b; font-size: 12px;">(%{{ stat.percentage }})</span></span>
           </div>
         </div>
-
-        <!-- FRONTEND GRAFİĞİ -->
-        <div class="chart-container" style="display: flex; flex-direction: column; align-items: center; gap: 20px;">
-          <h3 style="color: #333; font-size: 18px;">Frontend</h3>
-          <div [style.backgroundImage]="frontendGradient" 
-               style="width: 200px; height: 200px; border-radius: 50%; box-shadow: 0 4px 15px rgba(0,0,0,0.15); transition: background-image 0.4s ease-in-out;">
-          </div>
-          <div class="chart-legend" style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; font-size: 13px;">
-            <div *ngFor="let stat of frontendStats" style="display: flex; align-items: center; gap: 6px;">
-              <span [style.backgroundColor]="stat.color" style="width: 12px; height: 12px; border-radius: 3px;"></span>
-              <span>{{ stat.name }} <span style="color: #777;">(%{{ stat.percentage }})</span></span>
-            </div>
-          </div>
-        </div>
-
-        <!-- SEKTÖR GRAFİĞİ -->
-        <div class="chart-container" style="display: flex; flex-direction: column; align-items: center; gap: 20px;">
-          <h3 style="color: #333; font-size: 18px;">Sektörlük</h3>
-          <div [style.backgroundImage]="sektorlukGradient" 
-               style="width: 200px; height: 200px; border-radius: 50%; box-shadow: 0 4px 15px rgba(0,0,0,0.15); transition: background-image 0.4s ease-in-out;">
-          </div>
-          <div class="chart-legend" style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; font-size: 13px;">
-            <div *ngFor="let stat of sektorlukStats" style="display: flex; align-items: center; gap: 6px;">
-              <span [style.backgroundColor]="stat.color" style="width: 12px; height: 12px; border-radius: 3px;"></span>
-              <span>{{ stat.name }} <span style="color: #777;">(%{{ stat.percentage }})</span></span>
-            </div>
-          </div>
-        </div>
-
-        <!-- VERİTABANI GRAFİĞİ -->
-        <div class="chart-container" style="display: flex; flex-direction: column; align-items: center; gap: 20px;">
-          <h3 style="color: #333; font-size: 18px;">Veritabanı</h3>
-          <div [style.backgroundImage]="databaseGradient" 
-               style="width: 200px; height: 200px; border-radius: 50%; box-shadow: 0 4px 15px rgba(0,0,0,0.15); transition: background-image 0.4s ease-in-out;">
-          </div>
-          <div class="chart-legend" style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; font-size: 13px;">
-            <div *ngFor="let stat of databaseStats" style="display: flex; align-items: center; gap: 6px;">
-              <span [style.backgroundColor]="stat.color" style="width: 12px; height: 12px; border-radius: 3px;"></span>
-              <span>{{ stat.name }} <span style="color: #777;">(%{{ stat.percentage }})</span></span>
-            </div>
-          </div>
-        </div>
-
-        <!-- PLATFORM GRAFİĞİ -->
-        <div class="chart-container" style="display: flex; flex-direction: column; align-items: center; gap: 20px;">
-          <h3 style="color: #333; font-size: 18px;">Platform</h3>
-          <div [style.backgroundImage]="platformGradient" 
-               style="width: 200px; height: 200px; border-radius: 50%; box-shadow: 0 4px 15px rgba(0,0,0,0.15); transition: background-image 0.4s ease-in-out;">
-          </div>
-          <div class="chart-legend" style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; font-size: 13px;">
-            <div *ngFor="let stat of platformStats" style="display: flex; align-items: center; gap: 6px;">
-              <span [style.backgroundColor]="stat.color" style="width: 12px; height: 12px; border-radius: 3px;"></span>
-              <span>{{ stat.name }} <span style="color: #777;">(%{{ stat.percentage }})</span></span>
-            </div>
-          </div>
-        </div>
-
       </div>
-    </section>
+
+      <!-- VERİTABANI GRAFİĞİ -->
+      <div class="chart-card" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); display: flex; flex-direction: column; align-items: center; gap: 20px;">
+        <h3 style="color: #1e293b; font-size: 17px; font-weight: 600; margin: 0; padding-bottom: 8px; border-bottom: 2px solid #f1f5f9; width: 100%; text-align: center;">Veritabanı Dağılımı</h3>
+        <div [style.backgroundImage]="databaseGradient" 
+             (mousemove)="onChartMouseMove($event, databaseStats, 'database')"
+             (mouseleave)="onChartMouseLeave()"
+             style="width: 180px; height: 180px; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.1); cursor: crosshair; transition: transform 0.2s ease;">
+        </div>
+        <div class="chart-legend" style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; font-size: 13px; margin-top: auto;">
+          <div *ngFor="let stat of databaseStats" style="display: flex; align-items: center; gap: 6px; background: #f8fafc; padding: 4px 8px; border-radius: 6px; border: 1px solid #f1f5f9;">
+            <span [style.backgroundColor]="stat.color" style="width: 10px; height: 10px; border-radius: 2px;"></span>
+            <span style="color: #334155; font-weight: 500;">{{ stat.name }} <span style="color: #64748b; font-size: 12px;">(%{{ stat.percentage }})</span></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- PLATFORM GRAFİĞİ -->
+      <div class="chart-card" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); display: flex; flex-direction: column; align-items: center; gap: 20px;">
+        <h3 style="color: #1e293b; font-size: 17px; font-weight: 600; margin: 0; padding-bottom: 8px; border-bottom: 2px solid #f1f5f9; width: 100%; text-align: center;">Platform Dağılımı</h3>
+        <div [style.backgroundImage]="platformGradient" 
+             (mousemove)="onChartMouseMove($event, platformStats, 'platform')"
+             (mouseleave)="onChartMouseLeave()"
+             style="width: 180px; height: 180px; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.1); cursor: crosshair; transition: transform 0.2s ease;">
+        </div>
+        <div class="chart-legend" style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; font-size: 13px; margin-top: auto;">
+          <div *ngFor="let stat of platformStats" style="display: flex; align-items: center; gap: 6px; background: #f8fafc; padding: 4px 8px; border-radius: 6px; border: 1px solid #f1f5f9;">
+            <span [style.backgroundColor]="stat.color" style="width: 10px; height: 10px; border-radius: 2px;"></span>
+            <span style="color: #334155; font-weight: 500;">{{ stat.name }} <span style="color: #64748b; font-size: 12px;">(%{{ stat.percentage }})</span></span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- FAREYİ TAKİP EDEN DİNAMİK TOOLTIP -->
+  <div *ngIf="hoveredSlice && hoveredSlice.stat" 
+       [style.left.px]="hoveredSlice.x + 12"
+       [style.top.px]="hoveredSlice.y + 12"
+       style="
+         position: fixed;
+         z-index: 9999;
+         pointer-events: none;
+         background: rgba(15, 23, 42, 0.9);
+         color: #ffffff;
+         padding: 8px 12px;
+         border-radius: 8px;
+         font-size: 13px;
+         font-weight: 500;
+         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+         display: flex;
+         align-items: center;
+         gap: 8px;
+         backdrop-filter: blur(4px);
+         white-space: nowrap;
+       ">
+    <span [style.backgroundColor]="hoveredSlice.stat.color" 
+          style="width: 10px; height: 10px; border-radius: 50%; display: inline-block;"></span>
+    <span>{{ hoveredSlice.stat.name }}:</span>
+    <span style="color: #38bdf8; font-weight: bold;">%{{ hoveredSlice.stat.percentage }} ({{ hoveredSlice.stat.count }} Proje)</span>
   </div>
+</div>
 
 </div>
 
