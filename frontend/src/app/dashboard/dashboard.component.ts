@@ -75,7 +75,7 @@ interface ProjectFormState {
   customFields: Array<{ key: string; value: string }>;
 }
 
-export interface BackendStat {
+export interface ChartStat {
   name: string;
   count: number;
   percentage: number;
@@ -490,7 +490,7 @@ export class DashboardComponent implements OnInit {
       this.filteredProjects.sort((a, b) => this.compareProjects(a, b, this.sortField));
     }
 
-    this.calculateBackendStats();
+    this.calculateAllStats();
   }
 
   compareProjects(a: Project, b: Project, field: string): number {
@@ -519,54 +519,93 @@ export class DashboardComponent implements OnInit {
       .join(', ');
   }
 
-  backendStats: BackendStat[] = [];
-  pieChartGradient: string = '';
+  backendStats: ChartStat[] = [];
+  backendGradient: string = '';
 
-  calculateBackendStats(): void {
+  frontendStats: ChartStat[] = [];
+  frontendGradient: string = '';
+
+  sektorlukStats: ChartStat[] = [];
+  sektorlukGradient: string = '';
+
+  databaseStats: ChartStat[] = [];
+  databaseGradient: string = '';
+
+  platformStats: ChartStat[] = [];
+  platformGradient: string = '';
+
+  // Tüm istatistikleri aynı anda hesaplayan ana fonksiyon
+  calculateAllStats(): void {
     if (!this.filteredProjects || this.filteredProjects.length === 0) {
-      this.backendStats = [];
-      this.pieChartGradient = '';
+      this.resetStats();
       return;
     }
 
-    // Backend teknolojilerini sayalım
+    // Tekrar kullanılabilir fonksiyon ile tüm verileri hesapla
+    const backendData = this.calculateFieldStats('backend');
+    this.backendStats = backendData.stats;
+    this.backendGradient = backendData.gradient;
+
+    const frontendData = this.calculateFieldStats('frontend');
+    this.frontendStats = frontendData.stats;
+    this.frontendGradient = frontendData.gradient;
+
+    const sektorlukData = this.calculateFieldStats('sektorluk');
+    this.sektorlukStats = sektorlukData.stats;
+    this.sektorlukGradient = sektorlukData.gradient;
+
+    const databaseData = this.calculateFieldStats('databaseType');
+    this.databaseStats = databaseData.stats;
+    this.databaseGradient = databaseData.gradient;
+
+    const platformData = this.calculateFieldStats('platform');
+    this.platformStats = platformData.stats;
+    this.platformGradient = platformData.gradient;
+  }
+
+  // Boş durumda verileri sıfırlamak için
+  private resetStats(): void {
+    this.backendStats = this.frontendStats = this.sektorlukStats = this.databaseStats = this.platformStats = [];
+    this.backendGradient = this.frontendGradient = this.sektorlukGradient = this.databaseGradient = this.platformGradient = '';
+  }
+
+  // Dinamik olarak gönderilen alana (field) göre grafik verisi üreten metod
+  private calculateFieldStats(field: string): { stats: ChartStat[], gradient: string } {
     const counts: Record<string, number> = {};
     let totalProjects = 0;
 
     this.filteredProjects.forEach(p => {
-      // Backend boşsa "Belirtilmemiş" olarak grupla, değilse adını al
-      const backendName = p.backend ? p.backend.trim() : 'Belirtilmemiş';
+      // Gönderilen alan adından değeri oku (Örn: p['frontend'])
+      const value = (p as any)[field];
+      const name = value && typeof value === 'string' && value.trim() !== '' 
+        ? value.trim() 
+        : 'Belirtilmemiş';
       
-      counts[backendName] = (counts[backendName] || 0) + 1;
+      counts[name] = (counts[name] || 0) + 1;
       totalProjects++;
     });
 
-    // Grafik için kullanılacak renk paleti
     const colors = [
       '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
-      '#FF9F40', '#8AC926', '#1982C4', '#F15BB5', '#00BBF9'
+      '#FF9F40', '#8AC926', '#1982C4', '#F15BB5', '#00BBF9',
+      '#E74C3C', '#2ECC71', '#34495E' // Ekstra renkler
     ];
 
-    // İstatistik dizisini oluştur ve yüzde hesapla
-    let stats: BackendStat[] = Object.keys(counts).map((key, index) => {
+    let stats: ChartStat[] = Object.keys(counts).map((key, index) => {
       const count = counts[key];
-      // Yüzdeyi hesapla (ondalıklı kısmı yuvarlıyoruz)
       const percentage = (count / totalProjects) * 100;
       
       return {
         name: key,
         count: count,
-        percentage: Number(percentage.toFixed(1)), // %25.5 gibi göstermek için
+        percentage: Number(percentage.toFixed(1)),
         color: colors[index % colors.length]
       };
     });
 
-    // Sayısı en çok olandan en aza doğru sırala
+    // Büyükten küçüğe sırala
     stats.sort((a, b) => b.count - a.count);
 
-    this.backendStats = stats;
-
-    // CSS conic-gradient için string oluşturma
     let gradientParts: string[] = [];
     let currentPercentage = 0;
 
@@ -577,12 +616,10 @@ export class DashboardComponent implements OnInit {
       currentPercentage = end;
     });
 
-    // CSS Gradient'i ata
-    if (gradientParts.length > 0) {
-      this.pieChartGradient = `conic-gradient(${gradientParts.join(', ')})`;
-    } else {
-      this.pieChartGradient = '';
-    }
+    return {
+      stats,
+      gradient: gradientParts.length > 0 ? `conic-gradient(${gradientParts.join(', ')})` : ''
+    };
   }
 
 }

@@ -67,12 +67,36 @@
             [(ngModel)]="searchTerm"
             (ngModelChange)="onSearchChange()"
           />
+
+          <!-- Sadece searchTerm doluysa temizleme butonunu göster -->
+        <button 
+  *ngIf="searchTerm" 
+  (click)="searchTerm = ''; onSearchChange()"
+  type="button"
+  title="Aramayı Temizle"
+  style="
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: none;
+    background: #e2e8f0;
+    color: #64748b;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    line-height: 1;
+  "
+  onmouseover="this.style.background='#cbd5e1'; this.style.color='#1e293b';"
+  onmouseout="this.style.background='#e2e8f0'; this.style.color='#64748b';">
+  ✕
+</button>
         </label>
 
-        <!-- Sadece searchTerm doluysa temizleme butonunu göster -->
-        <button *ngIf="searchTerm" (click)="searchTerm = ''; onSearchChange()">
-          Temizle
-        </button>
+        
 
         <label style="display:flex; gap:6px; align-items:center;">
           <span>Sırala:</span>
@@ -269,54 +293,88 @@
       
       <div class="hero-title" style="margin-bottom: 24px;">
         <h2>Proje İstatistikleri</h2>
-        <p class="subtitle">Mevcut listeye göre Backend teknolojilerinin dağılımı</p>
+        <p class="subtitle">Projelerin teknoloji ve özellik dağılımları</p>
       </div>
       
-      <!-- Grafiğin ve verilerin tutulduğu kapsayıcı -->
-      <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 32px; padding: 20px;">
-        
-        <!-- Veri yoksa gösterilecek mesaj -->
-        <div *ngIf="backendStats.length === 0" style="color: #666; font-style: italic;">
-          Grafik oluşturmak için uygun veri bulunamadı.
-        </div>
-
-        <!-- CSS ile oluşturulmuş Dinamik Pasta Grafik -->
-        <div *ngIf="backendStats.length > 0" 
-             [style.backgroundImage]="pieChartGradient" 
-             style="
-               width: 280px; 
-               height: 280px; 
-               border-radius: 50%; 
-               box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-               transition: background-image 0.4s ease-in-out;">
-        </div>
-        
-        <!-- Renk Açıklamaları (Legend) -->
-        <div *ngIf="backendStats.length > 0" style="
-          display: flex; 
-          gap: 16px; 
-          font-size: 14px; 
-          flex-wrap: wrap; 
-          justify-content: center; 
-          max-width: 700px;
-          background: #f9f9f9;
-          padding: 16px 24px;
-          border-radius: 8px;
-          border: 1px solid #eee;">
-          
-          <!-- Her bir backend teknolojisi için döngü -->
-          <div *ngFor="let stat of backendStats" style="display: flex; align-items: center; gap: 8px;">
-            <span [style.backgroundColor]="stat.color" 
-                  style="display: block; width: 16px; height: 16px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-            </span>
-            <span style="font-weight: 500; color: #333;">
-              {{ stat.name }} <span style="color: #777;">(%{{ stat.percentage }})</span>
-            </span>
-          </div>
-
-        </div>
+      <div *ngIf="filteredProjects.length === 0" style="color: #666; font-style: italic; text-align: center;">
+        Grafik oluşturmak için uygun veri bulunamadı.
       </div>
 
+      <!-- GRAFİKLERİ YAN YANA / ALT ALTA DİZECEK GRID YAPISI -->
+      <div *ngIf="filteredProjects.length > 0" 
+           style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 40px; padding: 20px;">
+        
+        <!-- BACKEND GRAFİĞİ -->
+        <div class="chart-container" style="display: flex; flex-direction: column; align-items: center; gap: 20px;">
+          <h3 style="color: #333; font-size: 18px;">Backend</h3>
+          <div [style.backgroundImage]="backendGradient" 
+               style="width: 200px; height: 200px; border-radius: 50%; box-shadow: 0 4px 15px rgba(0,0,0,0.15); transition: background-image 0.4s ease-in-out;">
+          </div>
+          <div class="chart-legend" style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; font-size: 13px;">
+            <div *ngFor="let stat of backendStats" style="display: flex; align-items: center; gap: 6px;">
+              <span [style.backgroundColor]="stat.color" style="width: 12px; height: 12px; border-radius: 3px;"></span>
+              <span>{{ stat.name }} <span style="color: #777;">(%{{ stat.percentage }})</span></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- FRONTEND GRAFİĞİ -->
+        <div class="chart-container" style="display: flex; flex-direction: column; align-items: center; gap: 20px;">
+          <h3 style="color: #333; font-size: 18px;">Frontend</h3>
+          <div [style.backgroundImage]="frontendGradient" 
+               style="width: 200px; height: 200px; border-radius: 50%; box-shadow: 0 4px 15px rgba(0,0,0,0.15); transition: background-image 0.4s ease-in-out;">
+          </div>
+          <div class="chart-legend" style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; font-size: 13px;">
+            <div *ngFor="let stat of frontendStats" style="display: flex; align-items: center; gap: 6px;">
+              <span [style.backgroundColor]="stat.color" style="width: 12px; height: 12px; border-radius: 3px;"></span>
+              <span>{{ stat.name }} <span style="color: #777;">(%{{ stat.percentage }})</span></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- SEKTÖR GRAFİĞİ -->
+        <div class="chart-container" style="display: flex; flex-direction: column; align-items: center; gap: 20px;">
+          <h3 style="color: #333; font-size: 18px;">Sektörlük</h3>
+          <div [style.backgroundImage]="sektorlukGradient" 
+               style="width: 200px; height: 200px; border-radius: 50%; box-shadow: 0 4px 15px rgba(0,0,0,0.15); transition: background-image 0.4s ease-in-out;">
+          </div>
+          <div class="chart-legend" style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; font-size: 13px;">
+            <div *ngFor="let stat of sektorlukStats" style="display: flex; align-items: center; gap: 6px;">
+              <span [style.backgroundColor]="stat.color" style="width: 12px; height: 12px; border-radius: 3px;"></span>
+              <span>{{ stat.name }} <span style="color: #777;">(%{{ stat.percentage }})</span></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- VERİTABANI GRAFİĞİ -->
+        <div class="chart-container" style="display: flex; flex-direction: column; align-items: center; gap: 20px;">
+          <h3 style="color: #333; font-size: 18px;">Veritabanı</h3>
+          <div [style.backgroundImage]="databaseGradient" 
+               style="width: 200px; height: 200px; border-radius: 50%; box-shadow: 0 4px 15px rgba(0,0,0,0.15); transition: background-image 0.4s ease-in-out;">
+          </div>
+          <div class="chart-legend" style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; font-size: 13px;">
+            <div *ngFor="let stat of databaseStats" style="display: flex; align-items: center; gap: 6px;">
+              <span [style.backgroundColor]="stat.color" style="width: 12px; height: 12px; border-radius: 3px;"></span>
+              <span>{{ stat.name }} <span style="color: #777;">(%{{ stat.percentage }})</span></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- PLATFORM GRAFİĞİ -->
+        <div class="chart-container" style="display: flex; flex-direction: column; align-items: center; gap: 20px;">
+          <h3 style="color: #333; font-size: 18px;">Platform</h3>
+          <div [style.backgroundImage]="platformGradient" 
+               style="width: 200px; height: 200px; border-radius: 50%; box-shadow: 0 4px 15px rgba(0,0,0,0.15); transition: background-image 0.4s ease-in-out;">
+          </div>
+          <div class="chart-legend" style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; font-size: 13px;">
+            <div *ngFor="let stat of platformStats" style="display: flex; align-items: center; gap: 6px;">
+              <span [style.backgroundColor]="stat.color" style="width: 12px; height: 12px; border-radius: 3px;"></span>
+              <span>{{ stat.name }} <span style="color: #777;">(%{{ stat.percentage }})</span></span>
+            </div>
+          </div>
+        </div>
+
+      </div>
     </section>
   </div>
 
