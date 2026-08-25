@@ -75,6 +75,13 @@ interface ProjectFormState {
   customFields: Array<{ key: string; value: string }>;
 }
 
+export interface BackendStat {
+  name: string;
+  count: number;
+  percentage: number;
+  color: string;
+}
+
 interface ConfirmDialogState {
   isOpen: boolean;
   title: string;
@@ -94,6 +101,7 @@ interface ConfirmDialogState {
   styleUrl: './dashboard.component.css',
 })
 export class DashboardComponent implements OnInit {
+  activeTab: 'dashboard' | 'statistics' = 'dashboard';
   projects: Project[] = [];
   filteredProjects: Project[] = [];
   aktifs: number = 0;
@@ -453,7 +461,6 @@ export class DashboardComponent implements OnInit {
 
   applyFiltersAndSorting(): void {
     const term = this.searchTerm.toLowerCase().trim();
-    this.aktifs = this.projects.filter((project) => project.aktifPasif === 'A').length;
 
     this.filteredProjects = this.projects.filter((project) => {
       if (!term) return true;
@@ -477,9 +484,13 @@ export class DashboardComponent implements OnInit {
       return value ? value.toString().toLowerCase().includes(term) : false;
     });
 
+    this.aktifs = this.filteredProjects.filter((project) => project.aktifPasif === 'A').length;
+
     if (this.sortField) {
       this.filteredProjects.sort((a, b) => this.compareProjects(a, b, this.sortField));
     }
+
+    this.calculateBackendStats();
   }
 
   compareProjects(a: Project, b: Project, field: string): number {
@@ -507,4 +518,71 @@ export class DashboardComponent implements OnInit {
       .map(([key, value]) => `${key}: ${value}`)
       .join(', ');
   }
+
+  backendStats: BackendStat[] = [];
+  pieChartGradient: string = '';
+
+  calculateBackendStats(): void {
+    if (!this.filteredProjects || this.filteredProjects.length === 0) {
+      this.backendStats = [];
+      this.pieChartGradient = '';
+      return;
+    }
+
+    // Backend teknolojilerini sayalım
+    const counts: Record<string, number> = {};
+    let totalProjects = 0;
+
+    this.filteredProjects.forEach(p => {
+      // Backend boşsa "Belirtilmemiş" olarak grupla, değilse adını al
+      const backendName = p.backend ? p.backend.trim() : 'Belirtilmemiş';
+      
+      counts[backendName] = (counts[backendName] || 0) + 1;
+      totalProjects++;
+    });
+
+    // Grafik için kullanılacak renk paleti
+    const colors = [
+      '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
+      '#FF9F40', '#8AC926', '#1982C4', '#F15BB5', '#00BBF9'
+    ];
+
+    // İstatistik dizisini oluştur ve yüzde hesapla
+    let stats: BackendStat[] = Object.keys(counts).map((key, index) => {
+      const count = counts[key];
+      // Yüzdeyi hesapla (ondalıklı kısmı yuvarlıyoruz)
+      const percentage = (count / totalProjects) * 100;
+      
+      return {
+        name: key,
+        count: count,
+        percentage: Number(percentage.toFixed(1)), // %25.5 gibi göstermek için
+        color: colors[index % colors.length]
+      };
+    });
+
+    // Sayısı en çok olandan en aza doğru sırala
+    stats.sort((a, b) => b.count - a.count);
+
+    this.backendStats = stats;
+
+    // CSS conic-gradient için string oluşturma
+    let gradientParts: string[] = [];
+    let currentPercentage = 0;
+
+    stats.forEach(stat => {
+      const start = currentPercentage;
+      const end = currentPercentage + stat.percentage;
+      gradientParts.push(`${stat.color} ${start}% ${end}%`);
+      currentPercentage = end;
+    });
+
+    // CSS Gradient'i ata
+    if (gradientParts.length > 0) {
+      this.pieChartGradient = `conic-gradient(${gradientParts.join(', ')})`;
+    } else {
+      this.pieChartGradient = '';
+    }
+  }
+
 }
