@@ -7,6 +7,7 @@ import {
   Post,
   Put,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { Roles } from '../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
@@ -20,8 +21,15 @@ export class ProjectsController {
 
   @UseGuards(JwtAuthGuard)
   @Get()
-  findAll(): Promise<[Project[], number]> {
-    return this.projectsService.findAll();
+  findAll(
+    @Query('skip') skip?: string,
+    @Query('take') take?: string,
+  ) {
+    // String gelen query parametrelerini number'a çeviriyoruz
+    const skipValue = skip ? parseInt(skip, 10) : 0;
+    const takeValue = take ? parseInt(take, 10) : 20;
+    
+    return this.projectsService.findAll(skipValue, takeValue);
   }
 
   @UseGuards(JwtAuthGuard)

@@ -127,6 +127,12 @@ export class DashboardComponent implements OnInit {
   isLoadingEmployees = false;
   hasEmployeeError = false;
 
+  // Sayfalama Durumu
+  currentPage: number = 1;
+  readonly pageSize: number = 20;
+  totalPages: number = 1;
+  paginatedProjects: Project[] = [];
+
   // Custom Modal Durumu
   dialogState: ConfirmDialogState = {
     isOpen: false,
@@ -207,13 +213,21 @@ export class DashboardComponent implements OnInit {
     }
   }
 
+  totalRecords: number = 0;
   fetchProjects(): void {
     this.isLoading = true;
     this.hasError = false;
 
-    this.projectService.getProjects().subscribe({
-      next: (data) => {
-        this.projects = Array.isArray(data) ? data : [];
+    // Servise kaçıncı sayfada olduğumuzu ve sayfa boyutunu gönderiyoruz
+    this.projectService.getProjects(this.currentPage, this.pageSize).subscribe({
+      next: (response) => {
+        // Artık response bir obje: { data: Project[], total: number }
+        this.projects = response.data || [];
+        this.totalRecords = response.total || 0;
+        
+        // Toplam sayfa sayısını backend'den gelen gerçek toplama göre hesapla
+        this.totalPages = Math.ceil(this.totalRecords / this.pageSize) || 1;
+
         this.applyFiltersAndSorting();
         this.isLoading = false;
         this.cdr.detectChanges();
@@ -490,6 +504,7 @@ export class DashboardComponent implements OnInit {
       this.filteredProjects.sort((a, b) => this.compareProjects(a, b, this.sortField));
     }
 
+    this.paginatedProjects = this.filteredProjects;
     this.calculateAllStats();
   }
 
@@ -682,6 +697,39 @@ export class DashboardComponent implements OnInit {
   // Fare grafikten çıktığında tooltip'i gizle
   onChartMouseLeave(): void {
     this.hoveredSlice = null;
+  }
+
+
+  // Bu üç metodu aşağıdaki gibi güncelle (updatePagination yerine fetchProjects çağırıyoruz)
+  goToPage(page: number): void {
+    if (page >= 1 && page <= this.totalPages && page !== this.currentPage) {
+      this.currentPage = page;
+      this.fetchProjects(); // Yeni sayfayı backend'den iste
+    }
+  }
+
+  nextPage(): void {
+    if (this.currentPage < this.totalPages) {
+      this.currentPage++;
+      this.fetchProjects(); // Yeni sayfayı backend'den iste
+    }
+  }
+
+  prevPage(): void {
+    if (this.currentPage > 1) {
+      this.currentPage--;
+      this.fetchProjects(); // Yeni sayfayı backend'den iste
+    }
+  }
+
+  // dashboard.ts içine ekleyin:
+  get pageStart(): number {
+    if (this.totalRecords === 0) return 0;
+    return (this.currentPage - 1) * this.pageSize + 1;
+  }
+
+  get pageEnd(): number {
+    return Math.min(this.currentPage * this.pageSize, this.totalRecords);
   }
 
 }

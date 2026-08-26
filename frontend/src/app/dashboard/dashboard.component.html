@@ -1,8 +1,4 @@
 <div class="dashboard-shell">
-  
-  
-
-  
   <section class="hero-card" style="display: flex; align-items: center; justify-content: space-between;">
     <!-- SOL KISIM: Başlıklar -->
     <div class="hero-title">
@@ -49,7 +45,7 @@
           style="padding: 8px; border-radius: 6px; border: 1px solid #ccc; background: white;">
           <option value="all">Tüm Alanlar</option>
           <option value="uygulamaAdi">Uygulama Adı</option>
-          <option value="sektorluk">Sektör</option>
+          <option value="sektorluk">Direktörlük</option>
           <option value="frontend">Frontend</option>
           <option value="backend">Backend</option>
           <option value="databaseType">Veritabanı</option>
@@ -70,30 +66,30 @@
 
           <!-- Sadece searchTerm doluysa temizleme butonunu göster -->
         <button 
-  *ngIf="searchTerm" 
-  (click)="searchTerm = ''; onSearchChange()"
-  type="button"
-  title="Aramayı Temizle"
-  style="
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    border: none;
-    background: #e2e8f0;
-    color: #64748b;
-    font-size: 13px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    line-height: 1;
-  "
-  onmouseover="this.style.background='#cbd5e1'; this.style.color='#1e293b';"
-  onmouseout="this.style.background='#e2e8f0'; this.style.color='#64748b';">
-  ✕
-</button>
+            *ngIf="searchTerm" 
+            (click)="searchTerm = ''; onSearchChange()"
+            type="button"
+            title="Aramayı Temizle"
+            style="
+              display: inline-flex;
+              align-items: center;
+              justify-content: center;
+              width: 24px;
+              height: 24px;
+              border-radius: 50%;
+              border: none;
+              background: #e2e8f0;
+              color: #64748b;
+              font-size: 13px;
+              font-weight: bold;
+              cursor: pointer;
+              transition: all 0.2s ease;
+              line-height: 1;
+            "
+            onmouseover="this.style.background='#cbd5e1'; this.style.color='#1e293b';"
+            onmouseout="this.style.background='#e2e8f0'; this.style.color='#64748b';">
+            ✕
+          </button>
         </label>
 
         
@@ -154,6 +150,31 @@
           <span class="pill-aktifs">{{ aktifs }} aktif</span> 
         </div>
 
+        <div class="pagination-container">
+          <button 
+            (click)="prevPage()"
+            [disabled]="currentPage === 1"
+            type="button"
+            title="Önceki Sayfa"
+            class="pagination-btn">
+            ⭠
+          </button>
+
+          <span class="pagination-info">
+            <strong>{{ currentPage }}</strong> / {{ totalPages }}<br>
+            <small>(Toplam {{ totalRecords }} kayıttan {{ pageStart }}-{{ pageEnd }} arası)</small>
+          </span>
+
+          <button 
+            (click)="nextPage()"
+            [disabled]="currentPage === totalPages"
+            type="button"
+            title="Sonraki Sayfa"
+            class="pagination-btn">
+            ⭢
+          </button>
+        </div>
+
         <div class="view-toggle">
           <button
             type="button"
@@ -163,7 +184,34 @@
           >
             {{ viewMode === 'grid' ? 'Liste' : 'Kart' }}
           </button>
+
+          <button 
+            (click)="fetchProjects()"
+            type="button"
+            title="Yenile"
+            style="
+              display: inline-flex;
+              align-items: center;
+              justify-content: center;
+              width: 24px;
+              height: 24px;
+              border-radius: 50%;
+              border: none;
+              background: #e2e8f0;
+              color: #64748b;
+              font-size: 13px;
+              font-weight: bold;
+              cursor: pointer;
+              transition: all 0.2s ease;
+              line-height: 1;
+            "
+            onmouseover="this.style.background='#cbd5e1'; this.style.color='#1e293b';"
+            onmouseout="this.style.background='#e2e8f0'; this.style.color='#64748b';">
+            ⟲
+          </button>
         </div>
+
+        
       </div>
 
       <div *ngIf="isLoading" class="state-box loading">Yükleniyor...</div>
@@ -177,7 +225,7 @@
 
       <!-- 1. KART (GRID) GÖRÜNÜMÜ -->
       <div *ngIf="!isLoading && !hasError && filteredProjects.length > 0 && viewMode === 'grid'" class="project-grid">
-        <article class="project-card" *ngFor="let project of filteredProjects">
+        <article class="project-card" *ngFor="let project of paginatedProjects">
           <div class="card-top">
             <h4 [title]="project.uygulamaAdi || 'Uygulama adı yok'">
               {{ truncateText(project.uygulamaAdi, textLimit) || 'Uygulama adı yok' }}
@@ -245,7 +293,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let project of filteredProjects" style="border-bottom: 1px solid #eee;">
+              <tr *ngFor="let project of paginatedProjects" style="border-bottom: 1px solid #eee;">
                 <td style="padding: 10px; font-weight: bold;" [title]="project.uygulamaAdi || 'Uygulama adı yok'">
                   {{ truncateText(project.uygulamaAdi, textLimit) || 'Uygulama adı yok' }}
                 </td>
@@ -285,6 +333,8 @@
         </div>
       </div>
     </section>
+
+    
   </div>
 
   <!-- 2. SEKME: İSTATİSTİKLER -->
@@ -418,7 +468,30 @@
   <div class="modal-card">
     <div class="modal-header">
       <h3>{{ viewingProject?.uygulamaAdi || 'Proje detayları' }}</h3>
-      <button class="icon-btn" type="button" (click)="closeViewer()">×</button>
+      <button 
+        (click)="closeViewer()"
+        type="button"
+        title="Kapat"
+        style="
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          border: none;
+          background: #e2e8f0;
+          color: #64748b;
+          font-size: 13px;
+          font-weight: bold;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          line-height: 1;
+        "
+        onmouseover="this.style.background='#cbd5e1'; this.style.color='#1e293b';"
+        onmouseout="this.style.background='#e2e8f0'; this.style.color='#64748b';">
+        ✕
+      </button>
     </div>
 
     <div class="modal-body">
@@ -487,10 +560,6 @@
         <p>{{ viewingProject?.complexity || '—' }}</p>
       </div>
     </div>
-
-    <div class="modal-footer">
-      <button class="secondary-btn" type="button" (click)="closeViewer()">Kapat</button>
-    </div>
   </div>
 </div>
 
@@ -499,7 +568,6 @@
   <div class="modal-card">
     <div class="modal-header">
       <h3>{{ editingProject ? 'Projeyi düzenle' : 'Yeni proje ekle' }}</h3>
-      <button class="icon-btn" type="button" (click)="closeEditor()">×</button>
     </div>
 
     <div class="modal-body">

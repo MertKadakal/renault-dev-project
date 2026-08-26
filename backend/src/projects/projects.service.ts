@@ -27,9 +27,12 @@ export class ProjectsService {
     private readonly projectRepository: Repository<Project>,
   ) {}
 
-  // 1. Sayfalama ve toplam kayıt sayısı desteği eklendi
-  async findAll(): Promise<[Project[], number]> {
+  // 1. Sayfalama, varsayılan değerler ve sıralama desteği eklendi
+  async findAll(skip = 0, take = 20): Promise<[Project[], number]> {
     return this.projectRepository.findAndCount({
+      skip,
+      take,
+      order: { id: 'DESC' },
     });
   }
 

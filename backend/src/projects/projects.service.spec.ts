@@ -49,21 +49,21 @@ describe('ProjectsService', () => {
   });
 
   describe('findAll', () => {
-    it('should return paginated projects and total count', async () => {
+    it('should return paginated projects and total count with custom skip and take', async () => {
       const expectedResult: [Project[], number] = [[mockProject], 1];
       repository.findAndCount.mockResolvedValue(expectedResult);
 
-      const result = await service.findAll(0, 10);
+      const result = await service.findAll(20, 10);
 
       expect(repository.findAndCount).toHaveBeenCalledWith({
-        skip: 0,
+        skip: 20,
         take: 10,
         order: { id: 'DESC' },
       });
       expect(result).toEqual(expectedResult);
     });
 
-    it('should use default skip and take parameters when not provided', async () => {
+    it('should use default skip (0) and take (45) parameters when not provided', async () => {
       const expectedResult: [Project[], number] = [[mockProject], 1];
       repository.findAndCount.mockResolvedValue(expectedResult);
 
@@ -115,10 +115,12 @@ describe('ProjectsService', () => {
 
       const result = await service.create(payload as any);
 
-      expect(repository.create).toHaveBeenCalledWith(expect.objectContaining({
-        uygulamaAdi: 'New App',
-        customFields: { key: 'value' },
-      }));
+      expect(repository.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          uygulamaAdi: 'New App',
+          customFields: { key: 'value' },
+        }),
+      );
       expect(repository.save).toHaveBeenCalledWith(normalized);
       expect(result).toEqual(mockProject);
     });
@@ -133,9 +135,11 @@ describe('ProjectsService', () => {
 
       await service.create(payload as any);
 
-      expect(repository.create).toHaveBeenCalledWith(expect.objectContaining({
-        customFields: {},
-      }));
+      expect(repository.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          customFields: {},
+        }),
+      );
     });
 
     it('should throw InternalServerErrorException when repository save fails with Error instance', async () => {

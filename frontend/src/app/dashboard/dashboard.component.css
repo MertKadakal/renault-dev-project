@@ -148,6 +148,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 3px;
 }
 
 .view-mode-button {
@@ -315,25 +316,83 @@
   margin-top: auto;
 }
 
+/* 1. Modal Arka Planı (Tam Ekran Kapsama) */
 .modal-backdrop {
   position: fixed;
-  inset: 0;
-  background: rgba(15, 23, 42, 0.55);
+  top: 0;
+  left: 0;
+  width: 100%;             /* 100vh yerine 100% kullanıldı */
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 20px;
+  
+  padding: 16px;           /* Mobilde ekran kenarına yapışmayı önler */
+  box-sizing: border-box;
   z-index: 1000;
 }
 
+/* 2. Modal Kartı */
 .modal-card {
-  width: min(900px, 100%);
-  max-height: 90vh;
-  overflow: auto;
-  background: white;
-  border-radius: 18px;
-  box-shadow: 0 16px 50px rgba(15, 23, 42, 0.25);
+  width: 100%;             /* Ekran genişliğini orantılı doldurur */
+  max-width: 1000px;        /* Büyük ekranda maksimum genişlik */
+  max-height: 85vh;
+  
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  border-radius: 20px;
+  overflow: hidden;
+  box-sizing: border-box;
 }
+
+/* 3. Kaydırılabilir Gövde ve Metin Taşmasını Önleme */
+.modal-body {
+  overflow-y: auto;
+  overflow-x: hidden;      /* Yatay kaydırma çubuğunun çıkmasını engeller */
+  padding: 24px;
+  scroll-behavior: smooth;
+
+  /* Uzun URL veya kelimelerin kartı yatayda genişletmesini önler */
+  word-break: break-word;
+  overflow-wrap: break-word;
+
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.25) transparent;
+}
+
+/* 1. Çubuk Alanı Genişliği */
+.modal-body::-webkit-scrollbar {
+  width: 14px; /* Boşluk payı için genişlik artırıldı */
+}
+
+/* 2. Ray / Arka Plan (Görünmez ve köşelere çarpmayan boşluk) */
+.modal-body::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 12px 0; /* Üst ve alttan yumuşak iç boşluk */
+}
+
+/* 3. Sağ Dış Kısımda Duran Yumuşak Oval Çubuk */
+.modal-body::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.22);
+  border-radius: 9999px; /* Tam oval */
+  
+  /* Çubuğu sağa yaslayıp içerikten ayıran sihirli özellikler: */
+  border: 4px solid transparent; /* 4px şeffaf kenar boşluğu */
+  background-clip: padding-box;  /* Rengi sadece iç kısma hapseder */
+  
+  transition: background-color 0.25s ease;
+}
+
+/* 4. Üzerine Gelindiğinde (Hover) Yumuşak Geçiş */
+.modal-body::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 0, 0, 0.45);
+}
+
+
+
 
 .project-table-container {
   overflow-x: auto;
@@ -363,19 +422,12 @@
   justify-content: space-between;
   align-items: center;
   padding: 20px 24px;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid #0b0f15;
 }
 
 .modal-footer {
   border-top: 1px solid #e2e8f0;
   border-bottom: none;
-}
-
-.modal-body {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
-  padding: 20px 24px;
 }
 
 .modal-body label {
@@ -676,4 +728,56 @@
   border-bottom-color: #ffcc00;
   font-weight: 600;
   color: #000;
+}
+
+
+.pagination-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin: 20px auto;
+  padding: 10px 20px;
+  width: fit-content;
+  border-radius: 9999px; /* Kapsül görünüm için */
+  
+  /* Smooth Arka Plan ve Efektler */
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.05), 
+              0 1px 4px -1px rgba(0, 0, 0, 0.03);
+  backdrop-filter: blur(8px);
+}
+.pagination-info {
+  text-align: center;
+  font-size: 13px;
+  color: #475569;
+  line-height: 1.4;
+}
+
+.pagination-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: #e2e8f0;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  line-height: 1;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background: #cbd5e1;
+  color: #1e293b;
+}
+
+.pagination-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }

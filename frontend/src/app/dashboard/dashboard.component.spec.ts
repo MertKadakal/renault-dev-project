@@ -49,7 +49,7 @@ describe('DashboardComponent', () => {
       deSorumlu: 'Ahmet, Mehmet',
       sla: '99.9%',
       complexity: 'Yüksek',
-      customFields: { Versiyon: '2.0' } as any
+      customFields: { Versiyon: '2.0' } as any,
     },
     {
       id: 2,
@@ -63,35 +63,36 @@ describe('DashboardComponent', () => {
       platform: 'Mobil',
       deSorumlu: 'Ayşe',
       sla: '98%',
-      complexity: 'Orta'
-    }
+      complexity: 'Orta',
+    },
   ];
 
   const mockEmployees: Partial<Employee>[] = [
-    { Ipn: '123', Name: 'Ahmet', Surname: 'Yılmaz' }
+    { Ipn: '123', Name: 'Ahmet', Surname: 'Yılmaz' },
   ];
 
   beforeEach(async () => {
     projectServiceSpy = {
-      getProjects: vi.fn().mockReturnValue(of(mockProjects)),
+      // Sayfalanmış veri yapısına uygun mock dönüşü
+      getProjects: vi.fn().mockReturnValue(of({ data: mockProjects, total: mockProjects.length })),
       createProject: vi.fn().mockReturnValue(of({})),
       updateProject: vi.fn().mockReturnValue(of({})),
-      deleteProject: vi.fn().mockReturnValue(of({}))
+      deleteProject: vi.fn().mockReturnValue(of({})),
     };
 
     authServiceSpy = {
       getUser: vi.fn().mockReturnValue({ username: 'admin', name: 'Admin User', role: 'admin' }),
       getRole: vi.fn().mockReturnValue('admin'),
-      logout: vi.fn()
+      logout: vi.fn(),
     };
 
     employeeServiceSpy = {
-      getEmployees: vi.fn().mockResolvedValue(mockEmployees)
+      getEmployees: vi.fn().mockResolvedValue(mockEmployees),
     };
 
     routerSpy = {
       navigate: vi.fn(),
-      getCurrentNavigation: vi.fn().mockReturnValue(null)
+      getCurrentNavigation: vi.fn().mockReturnValue(null),
     };
 
     await TestBed.configureTestingModule({
@@ -101,8 +102,8 @@ describe('DashboardComponent', () => {
         { provide: AuthService, useValue: authServiceSpy },
         { provide: EmployeeService, useValue: employeeServiceSpy },
         { provide: Router, useValue: routerSpy },
-        { provide: PLATFORM_ID, useValue: 'browser' }
-      ]
+        { provide: PLATFORM_ID, useValue: 'browser' },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(DashboardComponent);
@@ -184,7 +185,7 @@ describe('DashboardComponent', () => {
       component.openDialog({
         title: 'Test',
         message: 'Test mesajı',
-        onConfirm: confirmSpy
+        onConfirm: confirmSpy,
       });
 
       expect(component.dialogState.isOpen).toBe(true);
@@ -199,7 +200,7 @@ describe('DashboardComponent', () => {
       component.openDialog({
         title: 'Test',
         message: 'Test mesajı',
-        onCancel: cancelSpy
+        onCancel: cancelSpy,
       });
 
       component.onDialogCancel();
@@ -266,7 +267,7 @@ describe('DashboardComponent', () => {
             uygulamaAdi: 'Yeni Uygulama',
             deSorumlu: 'Dev1, Dev2',
             customFields: { Ortam: 'Prod' },
-          })
+          }),
         );
         expect(component.isSaving).toBe(false);
         expect((component as any).forceCloseEditor).toHaveBeenCalled();
@@ -290,7 +291,7 @@ describe('DashboardComponent', () => {
             uygulamaAdi: 'Güncel İsim',
             deSorumlu: 'Tek Sorumlu',
             customFields: { Versiyon: '2.0' },
-          })
+          }),
         );
         expect(component.isSaving).toBe(false);
         expect((component as any).forceCloseEditor).toHaveBeenCalled();
@@ -492,7 +493,7 @@ describe('DashboardComponent', () => {
       it('alan değeri boş veya tanımsız projeler için "Belirtilmemiş" statüsü üretmeli', () => {
         component.filteredProjects = [
           { id: 1, backend: '' } as unknown as Project,
-          { id: 2, backend: undefined } as unknown as Project
+          { id: 2, backend: undefined } as unknown as Project,
         ];
         component.calculateAllStats();
 
@@ -507,8 +508,8 @@ describe('DashboardComponent', () => {
         clientX: 150,
         clientY: 150,
         currentTarget: {
-          getBoundingClientRect: () => ({ left: 100, top: 100, width: 100, height: 100 })
-        }
+          getBoundingClientRect: () => ({ left: 100, top: 100, width: 100, height: 100 }),
+        },
       } as unknown as MouseEvent;
 
       component.onChartMouseMove(fakeEvent, dummyStats, 'backend');
@@ -521,12 +522,8 @@ describe('DashboardComponent', () => {
     });
   });
 
-  // =======================================================================
-  // YENİ EKLENEN BÖLÜM: Şablon (Template) ve DOM Etkileşim Testleri (Coverage)
-  // =======================================================================
   describe('Şablon (Template) ve DOM Etkileşimleri', () => {
     beforeEach(async () => {
-      // Her testten önce dashboard sekmesini ve temel state'leri garantiye alıyoruz
       component.activeTab = 'dashboard';
       component.isLoading = false;
       component.hasError = false;
@@ -536,7 +533,8 @@ describe('DashboardComponent', () => {
       component.showEditor = false;
       component.projects = [...mockProjects] as Project[];
       component.filteredProjects = [...mockProjects] as Project[];
-      
+      component.paginatedProjects = [...mockProjects] as Project[];
+
       vi.spyOn(component, 'isAdmin').mockReturnValue(true);
       fixture.detectChanges();
       await fixture.whenStable();
@@ -544,21 +542,18 @@ describe('DashboardComponent', () => {
 
     it('Tab butonlarına tıklanarak activeTab (Dashboard/İstatistikler) değiştirilebilmeli', async () => {
       const tabButtons = fixture.debugElement.queryAll(By.css('.tab-button'));
-      
+
       if (tabButtons.length >= 2) {
-        // İstatistikler sekmesine tıkla
         tabButtons[1].nativeElement.click();
         fixture.detectChanges();
         await fixture.whenStable();
         expect(component.activeTab).toBe('statistics');
 
-        // Geri Dashboard sekmesine tıkla
         tabButtons[0].nativeElement.click();
         fixture.detectChanges();
         await fixture.whenStable();
         expect(component.activeTab).toBe('dashboard');
       } else {
-        // Fallback
         component.activeTab = 'statistics';
         expect(component.activeTab).toBe('statistics');
       }
@@ -571,11 +566,10 @@ describe('DashboardComponent', () => {
       await fixture.whenStable();
 
       const clearBtn = fixture.debugElement.query(By.css('.search-box button'));
-      
+
       if (clearBtn) {
         clearBtn.nativeElement.click();
       } else {
-        // DOM elementi bulunamazsa mantıksal çağrıyı tetikle (coverage için)
         component.searchTerm = '';
         component.onSearchChange();
       }
@@ -588,7 +582,7 @@ describe('DashboardComponent', () => {
     it('Görünüm modu butonu (Liste/Kart) toggleViewMode fonksiyonunu tetiklemeli', async () => {
       const toggleViewModeSpy = vi.spyOn(component, 'toggleViewMode');
       const viewModeBtn = fixture.debugElement.query(By.css('.view-mode-button'));
-      
+
       if (viewModeBtn) {
         viewModeBtn.nativeElement.click();
       } else {
@@ -598,36 +592,30 @@ describe('DashboardComponent', () => {
     });
 
     it('ViewMode "grid" iken .project-card, "table" iken .project-table DOM üzerinde render edilmeli', async () => {
-      // 1. Grid Görünümü
       component.viewMode = 'grid';
       fixture.detectChanges();
       await fixture.whenStable();
-      
+
       let gridCards = fixture.debugElement.queryAll(By.css('.project-card'));
       let tableEl = fixture.debugElement.query(By.css('.project-table'));
-      
+
       if (gridCards.length > 0) {
         expect(gridCards.length).toBe(mockProjects.length);
       }
       expect(tableEl).toBeNull();
 
-      // 2. Table (Liste) Görünümü
       component.viewMode = 'table';
       fixture.detectChanges();
       await fixture.whenStable();
 
       tableEl = fixture.debugElement.query(By.css('.project-table'));
-      
-      // Sadece table elementinin varlığını kontrol et (tasarımda project-card ortak kullanılıyor olabilir)
-      //expect(tableEl).not.toBeNull();
     });
 
     it('Sadece Admin rolündeki kullanıcı "+ Yeni proje" butonunu ve aksiyon (Düzenle/Sil) butonlarını görebilmeli', async () => {
-      // 1. Durum: Admin
       (component.isAdmin as any).mockReturnValue(true);
       fixture.detectChanges();
       await fixture.whenStable();
-      
+
       let addBtn = fixture.debugElement.query(By.css('.action-buttons .primary-btn'));
       if (addBtn) {
         expect(addBtn.nativeElement.textContent).toContain('Yeni proje');
@@ -638,21 +626,14 @@ describe('DashboardComponent', () => {
         expect(actionButtons.length).toBeGreaterThan(mockProjects.length);
       }
 
-      // 2. Durum: Standart Kullanıcı
       (component.isAdmin as any).mockReturnValue(false);
       fixture.detectChanges();
       await fixture.whenStable();
 
       addBtn = fixture.debugElement.query(By.css('.action-buttons .primary-btn'));
-      // Template tarafında isAdmin implementasyonu yoksa testin patlamasını önle
-      if (!addBtn || addBtn.nativeElement.disabled || addBtn.nativeElement.hasAttribute('hidden')) {
-        // Başarılı senaryo
-      }
-
       actionButtons = fixture.debugElement.queryAll(By.css('.project-card .card-actions button'));
       if (actionButtons.length === mockProjects.length) {
-        // Sadece "İncele" butonu
-        expect(actionButtons.length).toBe(mockProjects.length); 
+        expect(actionButtons.length).toBe(mockProjects.length);
       }
     });
 
@@ -667,18 +648,17 @@ describe('DashboardComponent', () => {
       const deleteSpy = vi.spyOn(component, 'deleteProject');
 
       const firstCardButtons = fixture.debugElement.queryAll(By.css('.project-card:first-child .card-actions button'));
-      
+
       if (firstCardButtons.length >= 3) {
-        firstCardButtons[0].nativeElement.click(); // İncele
+        firstCardButtons[0].nativeElement.click();
         expect(viewSpy).toHaveBeenCalledWith(component.filteredProjects[0]);
 
-        firstCardButtons[1].nativeElement.click(); // Düzenle
+        firstCardButtons[1].nativeElement.click();
         expect(editSpy).toHaveBeenCalledWith(component.filteredProjects[0]);
 
-        firstCardButtons[2].nativeElement.click(); // Aktif/Pasif
+        firstCardButtons[2].nativeElement.click();
         expect(deleteSpy).toHaveBeenCalledWith(component.filteredProjects[0]);
       } else {
-        // DOM bulunamazsa metodları çağır (Coverage)
         component.viewProject(component.filteredProjects[0]);
         component.editProject(component.filteredProjects[0]);
         component.deleteProject(component.filteredProjects[0]);
@@ -689,31 +669,29 @@ describe('DashboardComponent', () => {
     });
 
     it('Modal kapatma (×) butonlarına tıklandığında closeViewer veya closeEditor tetiklenmeli', async () => {
-      // 1. Viewer Modal Testi
       component.showViewer = true;
       component.viewingProject = mockProjects[0] as Project;
       fixture.detectChanges();
       await fixture.whenStable();
-      
+
       const closeViewerSpy = vi.spyOn(component, 'closeViewer');
       const viewerCloseBtn = fixture.debugElement.query(By.css('.modal-backdrop .icon-btn'));
-      
+
       if (viewerCloseBtn) {
         viewerCloseBtn.nativeElement.click();
       } else {
         component.closeViewer();
       }
       expect(closeViewerSpy).toHaveBeenCalled();
-      
-      // 2. Editor Modal Testi
+
       component.showViewer = false;
       component.showEditor = true;
       fixture.detectChanges();
       await fixture.whenStable();
-      
+
       const closeEditorSpy = vi.spyOn(component, 'closeEditor');
       const editorCloseBtn = fixture.debugElement.query(By.css('.modal-backdrop .icon-btn'));
-      
+
       if (editorCloseBtn) {
         editorCloseBtn.nativeElement.click();
       } else {
@@ -723,27 +701,54 @@ describe('DashboardComponent', () => {
     });
 
     it('Kayıt yoksa veya arama sonucu bulunamadıysa empty-state uyarıları DOM\'da görünmeli', async () => {
-      // 1. Durum: Hiç kayıt eklenmemiş
       component.projects = [];
       component.filteredProjects = [];
       fixture.detectChanges();
       await fixture.whenStable();
-      
+
       let emptyBox = fixture.debugElement.query(By.css('.state-box.empty'));
       if (emptyBox) {
         expect(emptyBox.nativeElement.textContent).toContain('Henüz proje eklenmemiş');
       }
 
-      // 2. Durum: Kayıt var ama aramayla eşleşen yok
       component.projects = [...mockProjects] as Project[];
       component.filteredProjects = [];
       fixture.detectChanges();
       await fixture.whenStable();
-      
+
       emptyBox = fixture.debugElement.query(By.css('.state-box.empty'));
       if (emptyBox) {
         expect(emptyBox.nativeElement.textContent).toContain('Aramanıza uygun proje bulunamadı');
       }
+    });
+
+    describe('Pagination Testleri', () => {
+      it('ilk sayfadayken prevPage sayfa numarasını düşürmemelidir', () => {
+        component.currentPage = 1;
+        component.totalPages = 5;
+        component.prevPage();
+        expect(component.currentPage).toBe(1);
+      });
+
+      it('son sayfadayken nextPage sayfa numarasını artırmamalıdır', () => {
+        component.currentPage = 5;
+        component.totalPages = 5;
+        component.nextPage();
+        expect(component.currentPage).toBe(5);
+      });
+
+      it('pageStart ve pageEnd değerlerini doğru hesaplamalıdır', () => {
+        component.currentPage = 2;
+        (component as any).pageSize = 20;
+        component.totalRecords = 45;
+
+        expect(component.pageStart).toBe(21);
+        expect(component.pageEnd).toBe(40);
+
+        component.currentPage = 3;
+        expect(component.pageStart).toBe(41);
+        expect(component.pageEnd).toBe(45);
+      });
     });
   });
 });

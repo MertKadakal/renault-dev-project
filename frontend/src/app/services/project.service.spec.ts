@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { provideHttpClient } from '@angular/common/http';
+import { HttpRequest, provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { ProjectService } from './project.service';
 import { Project } from '../models/project';
@@ -14,8 +14,8 @@ describe('ProjectService', () => {
       providers: [
         ProjectService,
         provideHttpClient(),
-        provideHttpClientTesting()
-      ]
+        provideHttpClientTesting(),
+      ],
     });
 
     service = TestBed.inject(ProjectService);
@@ -30,48 +30,70 @@ describe('ProjectService', () => {
     expect(service).toBeTruthy();
   });
 
-  describe('getProjects', () => {
-    it('iç içe dizi şeklinde gelen yanıtı (response[0]) düzgünce dönmeli', () => {
-      const mockNestedData = [
-        [
-          { id: 1, uygulamaAdi: 'Proje 1' } as unknown as Project,
-          { id: 2, uygulamaAdi: 'Proje 2' } as unknown as Project
-        ]
-      ];
+  it('getProjects doğru skip ve take parametreleriyle HTTP GET atmalıdır', () => {
+    const page = 2;
+    const limit = 20;
 
-      service.getProjects().subscribe(projects => {
-        expect(projects.length).toBe(2);
-        expect(projects).toEqual(mockNestedData[0]);
-      });
-
-      const req = httpMock.expectOne(apiUrl);
-      expect(req.request.method).toBe('GET');
-      req.flush(mockNestedData);
+    service.getProjects(page, limit).subscribe((res) => {
+      expect(res.data.length).toBe(1);
+      expect(res.total).toBe(1);
     });
 
-    it('düz dizi şeklinde gelen yanıtı olduğu gibi dönmeli', () => {
-      const mockFlatData = [
-        { id: 1, uygulamaAdi: 'Proje 1' } as unknown as Project
-      ];
+    const req = httpMock.expectOne(
+      (request: HttpRequest<unknown>) =>
+        request.url === apiUrl &&
+        request.params.get('skip') === '20' &&
+        request.params.get('take') === '20'
+    );
 
-      service.getProjects().subscribe(projects => {
-        expect(projects.length).toBe(1);
-        expect(projects).toEqual(mockFlatData);
+    expect(req.request.method).toBe('GET');
+    req.flush([[ { id: 1, uygulamaAdi: 'Test' } ], 1]);
+  });
+
+  describe('getProjects', () => {
+    it('iç içe dizi şeklinde gelen yanıtı ([data, total]) düzgünce dönmeli', () => {
+      const mockProjects = [
+        { id: 1, uygulamaAdi: 'Proje 1' } as unknown as Project,
+        { id: 2, uygulamaAdi: 'Proje 2' } as unknown as Project,
+      ];
+      const mockTotal = 2;
+
+      service.getProjects().subscribe((res) => {
+        expect(res.data.length).toBe(2);
+        expect(res.total).toBe(2);
+        expect(res.data).toEqual(mockProjects);
       });
 
-      const req = httpMock.expectOne(apiUrl);
+      const req = httpMock.expectOne((request: HttpRequest<unknown>) => request.url === apiUrl);
+      expect(req.request.method).toBe('GET');
+      req.flush([mockProjects, mockTotal]);
+    });
+
+    it('düz dizi şeklinde gelen yanıtı fallback olarak dönmeli', () => {
+      const mockFlatData = [
+        { id: 1, uygulamaAdi: 'Proje 1' } as unknown as Project,
+      ];
+
+      service.getProjects().subscribe((res) => {
+        expect(res.data.length).toBe(1);
+        expect(res.total).toBe(1);
+        expect(res.data).toEqual(mockFlatData);
+      });
+
+      const req = httpMock.expectOne((request: HttpRequest<unknown>) => request.url === apiUrl);
       expect(req.request.method).toBe('GET');
       req.flush(mockFlatData);
     });
 
-    it('dizi olmayan geçersiz bir veri geldiğinde boş dizi dönmeli', () => {
+    it('dizi olmayan geçersiz bir veri geldiğinde boş veri dönmeli', () => {
       const invalidResponse = { message: 'Beklenmeyen nesne' };
 
-      service.getProjects().subscribe(projects => {
-        expect(projects).toEqual([]);
+      service.getProjects().subscribe((res) => {
+        expect(res.data).toEqual([]);
+        expect(res.total).toBe(0);
       });
 
-      const req = httpMock.expectOne(apiUrl);
+      const req = httpMock.expectOne((request: HttpRequest<unknown>) => request.url === apiUrl);
       expect(req.request.method).toBe('GET');
       req.flush(invalidResponse);
     });
@@ -82,7 +104,7 @@ describe('ProjectService', () => {
       const newProject: Partial<Project> = { uygulamaAdi: 'Yeni Proje' };
       const createdProject = { id: 10, uygulamaAdi: 'Yeni Proje' } as unknown as Project;
 
-      service.createProject(newProject).subscribe(res => {
+      service.createProject(newProject).subscribe((res) => {
         expect(res).toEqual(createdProject);
       });
 
@@ -99,7 +121,7 @@ describe('ProjectService', () => {
       const updatePayload: Partial<Project> = { uygulamaAdi: 'Güncel Proje Adı' };
       const updatedResponse = { id: 5, uygulamaAdi: 'Güncel Proje Adı' } as unknown as Project;
 
-      service.updateProject(projectId, updatePayload).subscribe(res => {
+      service.updateProject(projectId, updatePayload).subscribe((res) => {
         expect(res).toEqual(updatedResponse);
       });
 
@@ -115,7 +137,7 @@ describe('ProjectService', () => {
       const projectId = 3;
       const deletedResponse = { id: 3 } as unknown as Project;
 
-      service.deleteProject(projectId).subscribe(res => {
+      service.deleteProject(projectId).subscribe((res) => {
         expect(res).toEqual(deletedResponse);
       });
 
