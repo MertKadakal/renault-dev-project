@@ -23,17 +23,17 @@
   </section>
 
   <div class="tabs-container">
-    <button 
+    <button
       class="tab-button" 
       [class.active]="activeTab === 'dashboard'"
       (click)="activeTab = 'dashboard'">
-      Dashboard
+      <h2 style="font-size:medium">Dashboard</h2>
     </button>
     <button 
       class="tab-button" 
       [class.active]="activeTab === 'statistics'"
       (click)="activeTab = 'statistics'">
-      İstatistikler
+      <h2 style="font-size: medium;">İstatistikler</h2>
     </button>
   </div>
 
@@ -171,7 +171,7 @@
       <div *ngIf="!isLoading && !hasError && projects.length > 0 && filteredProjects.length === 0" class="state-box empty" style="font-style: italic;">
         Aramanıza uygun proje bulunamadı.
       </div>
-      <div *ngIf="!isLoading && !hasError && projects.length === 0" class="state-box empty">
+      <div *ngIf="!isLoading && !hasError && projects.length === 0" class="state-box empty" style="color: #666; font-style: italic; text-align: center;" >
         Henüz proje eklenmemiş.
       </div>
 
