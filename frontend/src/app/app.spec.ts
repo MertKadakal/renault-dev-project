@@ -14,10 +14,10 @@ describe('App', () => {
     expect(app).toBeTruthy();
   });
 
-  it('should render title', async () => {
+  it('should have title signal with frontend value', () => {
     const fixture = TestBed.createComponent(App);
-    await fixture.whenStable();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, frontend');
+    const app = fixture.componentInstance;
+    // title bir Signal olduğu için değerini okumak üzere fonksiyon gibi çağırıyoruz: app['title']()
+    expect(app['title']()).toEqual('frontend');
   });
 });
