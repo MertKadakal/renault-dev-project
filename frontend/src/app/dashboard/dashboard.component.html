@@ -433,6 +433,22 @@
         </div>
       </div>
 
+      <!-- DE SORUMLU (GELİŞTİRİCİ) GRAFİĞİ -->
+      <div class="chart-card" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); display: flex; flex-direction: column; align-items: center; gap: 20px;">
+        <h3 style="color: #1e293b; font-size: 17px; font-weight: 600; margin: 0; padding-bottom: 8px; border-bottom: 2px solid #f1f5f9; width: 100%; text-align: center;">Geliştirici Dağılımı</h3>
+        <div [style.backgroundImage]="developerGradient" 
+             (mousemove)="onChartMouseMove($event, developerStats, 'developer')"
+             (mouseleave)="onChartMouseLeave()"
+             style="width: 180px; height: 180px; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.1); cursor: crosshair; transition: transform 0.2s ease;">
+        </div>
+        <div class="chart-legend" style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; font-size: 13px; margin-top: auto;">
+          <div *ngFor="let stat of developerStats" style="display: flex; align-items: center; gap: 6px; background: #f8fafc; padding: 4px 8px; border-radius: 6px; border: 1px solid #f1f5f9;">
+            <span [style.backgroundColor]="stat.color" style="width: 10px; height: 10px; border-radius: 2px;"></span>
+            <span style="color: #334155; font-weight: 500;">{{ stat.name }} <span style="color: #64748b; font-size: 12px;">(%{{ stat.percentage }})</span></span>
+          </div>
+        </div>
+      </div>
+
     </div>
   </section>
 

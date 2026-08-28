@@ -540,6 +540,9 @@ export class DashboardComponent implements OnInit {
   platformStats: ChartStat[] = [];
   platformGradient: string = '';
 
+  developerStats: ChartStat[] = [];
+  developerGradient: string = '';
+
   // Tüm istatistikleri aynı anda hesaplayan ana fonksiyon
   calculateAllStats(): void {
     if (!this.allStatsData || this.allStatsData.length === 0) {
@@ -566,39 +569,61 @@ export class DashboardComponent implements OnInit {
     const platformData = this.calculateFieldStats('platform');
     this.platformStats = platformData.stats;
     this.platformGradient = platformData.gradient;
+
+    const developerData = this.calculateFieldStats('deSorumlu'); 
+    this.developerStats = developerData.stats;
+    this.developerGradient = developerData.gradient;
   }
 
   // Boş durumda verileri sıfırlamak için
   private resetStats(): void {
-    this.backendStats = this.frontendStats = this.sektorlukStats = this.databaseStats = this.platformStats = [];
-    this.backendGradient = this.frontendGradient = this.sektorlukGradient = this.databaseGradient = this.platformGradient = '';
+    this.backendStats = this.frontendStats = this.sektorlukStats = this.databaseStats = this.platformStats = this.developerStats = [];
+    this.backendGradient = this.frontendGradient = this.sektorlukGradient = this.databaseGradient = this.platformGradient = this.developerGradient = '';
   }
 
   // Dinamik olarak gönderilen alana (field) göre grafik verisi üreten metod
-  private calculateFieldStats(field: string): { stats: ChartStat[], gradient: string } {
+  private calculateFieldStats(field: string, isCommaSeparated: boolean = false): { stats: ChartStat[], gradient: string } {
     const counts: Record<string, number> = {};
-    let totalProjects = 0;
+    let totalItems = 0; // totalProjects yerine totalItems kullanıyoruz çünkü 1 projede 3 kişi olabilir
 
     this.allStatsData.forEach(p => {
-      // Gönderilen alan adından değeri oku (Örn: p['frontend'])
-      const value = (p as any)[field];
-      const name = value && typeof value === 'string' && value.trim() !== '' 
-        ? value.trim() 
-        : 'Belirtilmemiş';
-      
-      counts[name] = (counts[name] || 0) + 1;
-      totalProjects++;
+      const rawValue = (p as any)[field];
+
+      // Eğer alan virgülle ayrılmış isimler içeriyorsa (örn: deSorumlu)
+      if (isCommaSeparated && rawValue && typeof rawValue === 'string') {
+        // İsimleri virgüllerden böl, boşlukları temizle ve boş olanları çıkar
+        const names = rawValue.split(',').map(s => s.trim()).filter(Boolean);
+        
+        if (names.length > 0) {
+          names.forEach(name => {
+            counts[name] = (counts[name] || 0) + 1;
+            totalItems++;
+          });
+        } else {
+          counts['Belirtilmemiş'] = (counts['Belirtilmemiş'] || 0) + 1;
+          totalItems++;
+        }
+      } 
+      // Standart (tekli) alanlar için
+      else {
+        const name = rawValue && typeof rawValue === 'string' && rawValue.trim() !== '' 
+          ? rawValue.trim() 
+          : 'Belirtilmemiş';
+        
+        counts[name] = (counts[name] || 0) + 1;
+        totalItems++;
+      }
     });
 
     const colors = [
       '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
       '#FF9F40', '#8AC926', '#1982C4', '#F15BB5', '#00BBF9',
-      '#E74C3C', '#2ECC71', '#34495E' // Ekstra renkler
+      '#E74C3C', '#2ECC71', '#34495E'
     ];
 
     let stats: ChartStat[] = Object.keys(counts).map((key, index) => {
       const count = counts[key];
-      const percentage = (count / totalProjects) * 100;
+      const percentage = (count / totalItems) * 100;
       
       return {
         name: key,
@@ -608,7 +633,6 @@ export class DashboardComponent implements OnInit {
       };
     });
 
-    // Büyükten küçüğe sırala
     stats.sort((a, b) => b.count - a.count);
 
     let gradientParts: string[] = [];
