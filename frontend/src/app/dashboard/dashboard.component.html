@@ -145,9 +145,15 @@
     <section class="project-list-card">
       <div class="list-header" style="display: flex; justify-content: space-between; align-items: center;">
         <div style="display: flex; align-items: center; gap: 12px;">
-          <span class="pill">{{ filteredProjects.length }} kayıt</span>
+          <span class="pill" style="display: inline-block; min-width: 50px; text-align: center;">
+            {{ filteredProjects.length }} kayıt
+          </span>
+          
           <hr style="height: 24px; border: 1px solid #ccc; margin: 0 8px;" />
-          <span class="pill-aktifs">{{ aktifs }} aktif</span> 
+          
+          <span class="pill-aktifs" style="display: inline-block; min-width: 50px; text-align: center;">
+            {{ aktifs }} aktif
+          </span> 
         </div>
 
         <div class="pagination-container">
@@ -160,7 +166,7 @@
             ⭠
           </button>
 
-          <span class="pagination-info">
+          <span class="pagination-info" style="display: inline-block; min-width: 200px; text-align: center;">
             <strong>{{ currentPage }}</strong> / {{ totalPages }}<br>
             <small>(Toplam {{ totalRecords }} kayıttan {{ pageStart }}-{{ pageEnd }} arası)</small>
           </span>
@@ -210,8 +216,6 @@
             ⟲
           </button>
         </div>
-
-        
       </div>
 
       <div *ngIf="isLoading" class="state-box loading">Yükleniyor...</div>

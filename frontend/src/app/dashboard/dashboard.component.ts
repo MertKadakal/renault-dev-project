@@ -132,6 +132,7 @@ export class DashboardComponent implements OnInit {
   readonly pageSize: number = 20;
   totalPages: number = 1;
   paginatedProjects: Project[] = [];
+  allStatsData: Project[] = [];
 
   // Custom Modal Durumu
   dialogState: ConfirmDialogState = {
@@ -143,9 +144,12 @@ export class DashboardComponent implements OnInit {
     type: 'confirm',
   };
 
+  private searchTimeout: any;
+
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
       this.fetchProjects();
+      this.fetchStatisticsData(); // İlk açılışta grafikleri de doldur
       this.fetchEmployees();
     }
     this.currentUser = this.authService.getUser();
@@ -218,14 +222,12 @@ export class DashboardComponent implements OnInit {
     this.isLoading = true;
     this.hasError = false;
 
-    // Servise kaçıncı sayfada olduğumuzu ve sayfa boyutunu gönderiyoruz
-    this.projectService.getProjects(this.currentPage, this.pageSize).subscribe({
+    // Servise arama parametrelerini de gönderiyoruz
+    this.projectService.getProjects(this.currentPage, this.pageSize, this.searchField, this.searchTerm).subscribe({
       next: (response) => {
-        // Artık response bir obje: { data: Project[], total: number }
         this.projects = response.data || [];
         this.totalRecords = response.total || 0;
         
-        // Toplam sayfa sayısını backend'den gelen gerçek toplama göre hesapla
         this.totalPages = Math.ceil(this.totalRecords / this.pageSize) || 1;
 
         this.applyFiltersAndSorting();
@@ -461,7 +463,15 @@ export class DashboardComponent implements OnInit {
   }
 
   onSearchChange(): void {
-    this.applyFiltersAndSorting();
+    if (this.searchTimeout) {
+      clearTimeout(this.searchTimeout);
+    }
+    
+    this.searchTimeout = setTimeout(() => {
+      this.currentPage = 1; 
+      this.fetchProjects(); 
+      this.fetchStatisticsData(); // Arama değiştiğinde grafikleri yeniden hesaplamak için tüm veriyi çek
+    }, 400);
   }
 
   onSortChange(): void {
@@ -474,38 +484,19 @@ export class DashboardComponent implements OnInit {
   }
 
   applyFiltersAndSorting(): void {
-    const term = this.searchTerm.toLowerCase().trim();
+    // ARTIK FİLTRELEMEYİ İPTAL EDİYORUZ (Çünkü backend zaten filtrelenmiş 6 veriyi getirdi)
+    // Sadece diziyi kopyalıyoruz
+    this.filteredProjects = [...this.projects];
 
-    this.filteredProjects = this.projects.filter((project) => {
-      if (!term) return true;
-
-      if (this.searchField === 'all') {
-        return (
-          project.uygulamaAdi?.toLowerCase().includes(term) ||
-          project.sektorluk?.toLowerCase().includes(term) ||
-          project.tanimUygulamaAciklama?.toLowerCase().includes(term) ||
-          project.frontend?.toLowerCase().includes(term) ||
-          project.backend?.toLowerCase().includes(term) ||
-          project.databaseType?.toLowerCase().includes(term) ||
-          project.platform?.toLowerCase().includes(term) ||
-          project.deSorumlu?.toLowerCase().includes(term) ||
-          project.sla?.toLowerCase().includes(term) ||
-          project.complexity?.toLowerCase().includes(term)
-        );
-      }
-
-      const value = (project as any)[this.searchField];
-      return value ? value.toString().toLowerCase().includes(term) : false;
-    });
-
+    // Aktif sayısını hesapla
     this.aktifs = this.filteredProjects.filter((project) => project.aktifPasif === 'A').length;
 
+    // Client-side sıralama devam edebilir (o anki 20 veya daha az kayıt üzerinde çalışır)
     if (this.sortField) {
       this.filteredProjects.sort((a, b) => this.compareProjects(a, b, this.sortField));
     }
 
     this.paginatedProjects = this.filteredProjects;
-    this.calculateAllStats();
   }
 
   compareProjects(a: Project, b: Project, field: string): number {
@@ -551,12 +542,11 @@ export class DashboardComponent implements OnInit {
 
   // Tüm istatistikleri aynı anda hesaplayan ana fonksiyon
   calculateAllStats(): void {
-    if (!this.filteredProjects || this.filteredProjects.length === 0) {
+    if (!this.allStatsData || this.allStatsData.length === 0) {
       this.resetStats();
       return;
     }
 
-    // Tekrar kullanılabilir fonksiyon ile tüm verileri hesapla
     const backendData = this.calculateFieldStats('backend');
     this.backendStats = backendData.stats;
     this.backendGradient = backendData.gradient;
@@ -589,7 +579,7 @@ export class DashboardComponent implements OnInit {
     const counts: Record<string, number> = {};
     let totalProjects = 0;
 
-    this.filteredProjects.forEach(p => {
+    this.allStatsData.forEach(p => {
       // Gönderilen alan adından değeri oku (Örn: p['frontend'])
       const value = (p as any)[field];
       const name = value && typeof value === 'string' && value.trim() !== '' 
@@ -732,4 +722,16 @@ export class DashboardComponent implements OnInit {
     return Math.min(this.currentPage * this.pageSize, this.totalRecords);
   }
 
+  fetchStatisticsData(): void {
+    // limit parametresini 0 (limitsiz) olarak gönderiyoruz
+    this.projectService.getProjects(1, 0, this.searchField, this.searchTerm).subscribe({
+      next: (response) => {
+        this.allStatsData = response.data || [];
+        this.calculateAllStats(); // Veri gelince grafikleri hesapla
+      },
+      error: (error) => {
+        console.error('İstatistik verileri çekilirken hata oluştu!', error);
+      },
+    });
+  }
 }

@@ -24,12 +24,15 @@ export class ProjectsController {
   findAll(
     @Query('skip') skip?: string,
     @Query('take') take?: string,
+    @Query('searchField') searchField?: string,
+    @Query('searchTerm') searchTerm?: string,
   ) {
-    // String gelen query parametrelerini number'a çeviriyoruz
+    // URL'den gelen query parametreleri string'tir. Veritabanı için number'a çevirmeliyiz.
     const skipValue = skip ? parseInt(skip, 10) : 0;
     const takeValue = take ? parseInt(take, 10) : 20;
-    
-    return this.projectsService.findAll(skipValue, takeValue);
+
+    // Arama terimlerini servise iletiyoruz
+    return this.projectsService.findAll(skipValue, takeValue, searchField, searchTerm);
   }
 
   @UseGuards(JwtAuthGuard)

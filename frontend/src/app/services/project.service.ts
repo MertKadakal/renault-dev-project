@@ -17,8 +17,14 @@ export class ProjectService {
 
   constructor(private readonly http: HttpClient) { }
 
-  // Varsayılan olarak page=1 ve limit=10 verdik. İstediğin gibi değiştirebilirsin.
-  getProjects(page: number = 1, limit: number = 10): Observable<PaginatedProjects> {
+  // searchField ve searchTerm parametreleri eklendi
+  getProjects(
+    page: number = 1, 
+    limit: number = 10,
+    searchField?: string,
+    searchTerm?: string
+  ): Observable<PaginatedProjects> {
+    
     // Backend'deki skip/take mantığına göre hesaplama yapıyoruz
     const skip = (page - 1) * limit;
 
@@ -27,8 +33,13 @@ export class ProjectService {
       .set('skip', skip.toString())
       .set('take', limit.toString());
     
-    // Not: NestJS controller'ın query'den skip ve take aldığını varsayıyorum.
-    // Eğer controller tarafında doğrudan page ve limit alıyorsan, params.set('page', page) şeklinde revize edebilirsin.
+    // Eğer arama yapılmışsa parametrelere ekliyoruz
+    if (searchTerm) {
+      params = params.set('searchTerm', searchTerm);
+      if (searchField) {
+        params = params.set('searchField', searchField);
+      }
+    }
 
     return this.http.get<any>(this.apiUrl, { params }).pipe(
       map((response) => {

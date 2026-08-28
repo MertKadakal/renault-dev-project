@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, ILike, FindOptionsWhere } from 'typeorm';
 import { Project } from './entities/project.entity';
 
 const PROJECT_ALIASES: Record<string, keyof Project> = {
@@ -27,11 +27,36 @@ export class ProjectsService {
     private readonly projectRepository: Repository<Project>,
   ) {}
 
-  // 1. Sayfalama, varsayılan değerler ve sıralama desteği eklendi
-  async findAll(skip = 0, take = 20): Promise<[Project[], number]> {
+  // Sayfalama, arama ve sıralama desteği eklendi
+  async findAll(skip = 0, take = 20, searchField?: string, searchTerm?: string): Promise<[Project[], number]> {
+    let whereClause: FindOptionsWhere<Project> | FindOptionsWhere<Project>[] = {};
+
+    if (searchTerm && searchTerm.trim() !== '') {
+      const term = `%${searchTerm.trim()}%`;
+
+      if (searchField && searchField !== 'all') {
+        whereClause = { [searchField]: ILike(term) } as FindOptionsWhere<Project>;
+      } else {
+        // 'all' seçiliyse tüm metin tabanlı alanlarda (OR mantığı ile) ara
+        whereClause = [
+          { uygulamaAdi: ILike(term) },
+          { sektorluk: ILike(term) } as any,
+          { tanimUygulamaAciklama: ILike(term) },
+          { frontend: ILike(term) },
+          { backend: ILike(term) },
+          { databaseType: ILike(term) },
+          { platform: ILike(term) },
+          { deSorumlu: ILike(term) },
+          { sla: ILike(term) },
+          { complexity: ILike(term) },
+        ];
+      }
+    }
+
     return this.projectRepository.findAndCount({
       skip,
-      take,
+      take: take > 0 ? take : undefined, // EĞER take 0 gelirse limitsiz getir!
+      where: Object.keys(whereClause).length > 0 ? whereClause : undefined,
       order: { id: 'DESC' },
     });
   }
@@ -59,7 +84,6 @@ export class ProjectsService {
     return project;
   }
 
-  // 2. Tekrarlanan lookup yerine this.findOne(id) kullanıldı
   async update(
     id: number,
     updateProjectDto: Partial<Project>,
@@ -71,7 +95,6 @@ export class ProjectsService {
     return this.projectRepository.save(updated);
   }
 
-  // 3. Tekrarlanan lookup yerine this.findOne(id) kullanıldı
   async remove(id: number): Promise<Project> {
     const project = await this.findOne(id);
 
@@ -79,11 +102,9 @@ export class ProjectsService {
     return this.projectRepository.save(project);
   }
 
-  // 4. Mantık sadeleştirildi ve temizlendi
   private normalizeProjectPayload(payload: Partial<Project>): Partial<Project> {
     const normalized: Partial<Project> = { ...payload };
 
-    // customFields kontrolünü tek satırda halledin
     normalized.customFields =
       payload.customFields &&
       typeof payload.customFields === 'object' &&
@@ -91,7 +112,6 @@ export class ProjectsService {
         ? payload.customFields
         : {};
 
-    // Sadece gelen payload'daki key'ler üzerinde dönün (13 alias yerine sadece gelen alanlar kontrol edilir)
     for (const [key, value] of Object.entries(payload)) {
       const targetKey = PROJECT_ALIASES[key];
       if (targetKey && value !== undefined) {
