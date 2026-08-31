@@ -136,6 +136,9 @@
         <button *ngIf="isAdmin()" class="primary-btn" type="button" (click)="addProject()">
           + Yeni proje
         </button>
+        <button *ngIf="isAdmin()" class="secondary-btn" type="button" (click)="openBulkActionModal()" title="Tüm projeler için özel alan yönetimi">
+          ⚙️ Toplu Özel Alan İşlemleri
+        </button>
         <button class="danger-btn logout-btn" type="button" (click)="onLogout()">
           ⍈
         </button>
@@ -356,15 +359,28 @@
       <!-- BACKEND GRAFİĞİ -->
       <div class="chart-card" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); display: flex; flex-direction: column; align-items: center; gap: 20px;">
         <h3 style="color: #1e293b; font-size: 17px; font-weight: 600; margin: 0; padding-bottom: 8px; border-bottom: 2px solid #f1f5f9; width: 100%; text-align: center;">Backend Dağılımı</h3>
-        <div [style.backgroundImage]="backendGradient" 
-             (mousemove)="onChartMouseMove($event, backendStats, 'backend')"
-             (mouseleave)="onChartMouseLeave()"
-             style="width: 180px; height: 180px; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.1); cursor: crosshair; transition: transform 0.2s ease;">
+        
+        <div style="position: relative; width: 180px; height: 180px;">
+          <div [style.backgroundImage]="backendGradient" 
+               (mousemove)="onChartMouseMove($event, backendStats, 'backend')"
+               (mouseleave)="onChartMouseLeave()"
+               style="width: 100%; height: 100%; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.1); cursor: crosshair; transition: transform 0.2s ease;">
+          </div>
+          
+          <ng-container *ngFor="let stat of backendStats">
+            <span *ngIf="stat.percentage > 5" 
+                  style="position: absolute; transform: translate(-50%, -50%); color: white; font-weight: 700; font-size: 12px; text-shadow: 1px 1px 3px rgba(0,0,0,0.9); pointer-events: none;"
+                  [style.left.px]="stat.labelX"
+                  [style.top.px]="stat.labelY">
+              %{{ stat.percentage }}
+            </span>
+          </ng-container>
         </div>
+
         <div class="chart-legend" style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; font-size: 13px; margin-top: auto;">
           <div *ngFor="let stat of backendStats" style="display: flex; align-items: center; gap: 6px; background: #f8fafc; padding: 4px 8px; border-radius: 6px; border: 1px solid #f1f5f9;">
             <span [style.backgroundColor]="stat.color" style="width: 10px; height: 10px; border-radius: 2px;"></span>
-            <span style="color: #334155; font-weight: 500;">{{ stat.name }} <span style="color: #64748b; font-size: 12px;">(%{{ stat.percentage }})</span></span>
+            <span style="color: #334155; font-weight: 500;">{{ stat.name }}</span>
           </div>
         </div>
       </div>
@@ -372,15 +388,28 @@
       <!-- FRONTEND GRAFİĞİ -->
       <div class="chart-card" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); display: flex; flex-direction: column; align-items: center; gap: 20px;">
         <h3 style="color: #1e293b; font-size: 17px; font-weight: 600; margin: 0; padding-bottom: 8px; border-bottom: 2px solid #f1f5f9; width: 100%; text-align: center;">Frontend Dağılımı</h3>
-        <div [style.backgroundImage]="frontendGradient" 
-             (mousemove)="onChartMouseMove($event, frontendStats, 'frontend')"
-             (mouseleave)="onChartMouseLeave()"
-             style="width: 180px; height: 180px; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.1); cursor: crosshair; transition: transform 0.2s ease;">
+        
+        <div style="position: relative; width: 180px; height: 180px;">
+          <div [style.backgroundImage]="frontendGradient" 
+               (mousemove)="onChartMouseMove($event, frontendStats, 'frontend')"
+               (mouseleave)="onChartMouseLeave()"
+               style="width: 100%; height: 100%; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.1); cursor: crosshair; transition: transform 0.2s ease;">
+          </div>
+          
+          <ng-container *ngFor="let stat of frontendStats">
+            <span *ngIf="stat.percentage > 5" 
+                  style="position: absolute; transform: translate(-50%, -50%); color: white; font-weight: 700; font-size: 12px; text-shadow: 1px 1px 3px rgba(0,0,0,0.9); pointer-events: none;"
+                  [style.left.px]="stat.labelX"
+                  [style.top.px]="stat.labelY">
+              %{{ stat.percentage }}
+            </span>
+          </ng-container>
         </div>
+
         <div class="chart-legend" style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; font-size: 13px; margin-top: auto;">
           <div *ngFor="let stat of frontendStats" style="display: flex; align-items: center; gap: 6px; background: #f8fafc; padding: 4px 8px; border-radius: 6px; border: 1px solid #f1f5f9;">
             <span [style.backgroundColor]="stat.color" style="width: 10px; height: 10px; border-radius: 2px;"></span>
-            <span style="color: #334155; font-weight: 500;">{{ stat.name }} <span style="color: #64748b; font-size: 12px;">(%{{ stat.percentage }})</span></span>
+            <span style="color: #334155; font-weight: 500;">{{ stat.name }}</span>
           </div>
         </div>
       </div>
@@ -388,15 +417,28 @@
       <!-- SEKTÖR GRAFİĞİ -->
       <div class="chart-card" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); display: flex; flex-direction: column; align-items: center; gap: 20px;">
         <h3 style="color: #1e293b; font-size: 17px; font-weight: 600; margin: 0; padding-bottom: 8px; border-bottom: 2px solid #f1f5f9; width: 100%; text-align: center;">Sektörlük Dağılımı</h3>
-        <div [style.backgroundImage]="sektorlukGradient" 
-             (mousemove)="onChartMouseMove($event, sektorlukStats, 'sektorluk')"
-             (mouseleave)="onChartMouseLeave()"
-             style="width: 180px; height: 180px; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.1); cursor: crosshair; transition: transform 0.2s ease;">
+        
+        <div style="position: relative; width: 180px; height: 180px;">
+          <div [style.backgroundImage]="sektorlukGradient" 
+               (mousemove)="onChartMouseMove($event, sektorlukStats, 'sektorluk')"
+               (mouseleave)="onChartMouseLeave()"
+               style="width: 100%; height: 100%; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.1); cursor: crosshair; transition: transform 0.2s ease;">
+          </div>
+          
+          <ng-container *ngFor="let stat of sektorlukStats">
+            <span *ngIf="stat.percentage > 5" 
+                  style="position: absolute; transform: translate(-50%, -50%); color: white; font-weight: 700; font-size: 12px; text-shadow: 1px 1px 3px rgba(0,0,0,0.9); pointer-events: none;"
+                  [style.left.px]="stat.labelX"
+                  [style.top.px]="stat.labelY">
+              %{{ stat.percentage }}
+            </span>
+          </ng-container>
         </div>
+
         <div class="chart-legend" style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; font-size: 13px; margin-top: auto;">
           <div *ngFor="let stat of sektorlukStats" style="display: flex; align-items: center; gap: 6px; background: #f8fafc; padding: 4px 8px; border-radius: 6px; border: 1px solid #f1f5f9;">
             <span [style.backgroundColor]="stat.color" style="width: 10px; height: 10px; border-radius: 2px;"></span>
-            <span style="color: #334155; font-weight: 500;">{{ stat.name }} <span style="color: #64748b; font-size: 12px;">(%{{ stat.percentage }})</span></span>
+            <span style="color: #334155; font-weight: 500;">{{ stat.name }}</span>
           </div>
         </div>
       </div>
@@ -404,15 +446,28 @@
       <!-- VERİTABANI GRAFİĞİ -->
       <div class="chart-card" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); display: flex; flex-direction: column; align-items: center; gap: 20px;">
         <h3 style="color: #1e293b; font-size: 17px; font-weight: 600; margin: 0; padding-bottom: 8px; border-bottom: 2px solid #f1f5f9; width: 100%; text-align: center;">Veritabanı Dağılımı</h3>
-        <div [style.backgroundImage]="databaseGradient" 
-             (mousemove)="onChartMouseMove($event, databaseStats, 'database')"
-             (mouseleave)="onChartMouseLeave()"
-             style="width: 180px; height: 180px; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.1); cursor: crosshair; transition: transform 0.2s ease;">
+        
+        <div style="position: relative; width: 180px; height: 180px;">
+          <div [style.backgroundImage]="databaseGradient" 
+               (mousemove)="onChartMouseMove($event, databaseStats, 'database')"
+               (mouseleave)="onChartMouseLeave()"
+               style="width: 100%; height: 100%; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.1); cursor: crosshair; transition: transform 0.2s ease;">
+          </div>
+          
+          <ng-container *ngFor="let stat of databaseStats">
+            <span *ngIf="stat.percentage > 5" 
+                  style="position: absolute; transform: translate(-50%, -50%); color: white; font-weight: 700; font-size: 12px; text-shadow: 1px 1px 3px rgba(0,0,0,0.9); pointer-events: none;"
+                  [style.left.px]="stat.labelX"
+                  [style.top.px]="stat.labelY">
+              %{{ stat.percentage }}
+            </span>
+          </ng-container>
         </div>
+
         <div class="chart-legend" style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; font-size: 13px; margin-top: auto;">
           <div *ngFor="let stat of databaseStats" style="display: flex; align-items: center; gap: 6px; background: #f8fafc; padding: 4px 8px; border-radius: 6px; border: 1px solid #f1f5f9;">
             <span [style.backgroundColor]="stat.color" style="width: 10px; height: 10px; border-radius: 2px;"></span>
-            <span style="color: #334155; font-weight: 500;">{{ stat.name }} <span style="color: #64748b; font-size: 12px;">(%{{ stat.percentage }})</span></span>
+            <span style="color: #334155; font-weight: 500;">{{ stat.name }}</span>
           </div>
         </div>
       </div>
@@ -420,15 +475,28 @@
       <!-- PLATFORM GRAFİĞİ -->
       <div class="chart-card" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); display: flex; flex-direction: column; align-items: center; gap: 20px;">
         <h3 style="color: #1e293b; font-size: 17px; font-weight: 600; margin: 0; padding-bottom: 8px; border-bottom: 2px solid #f1f5f9; width: 100%; text-align: center;">Platform Dağılımı</h3>
-        <div [style.backgroundImage]="platformGradient" 
-             (mousemove)="onChartMouseMove($event, platformStats, 'platform')"
-             (mouseleave)="onChartMouseLeave()"
-             style="width: 180px; height: 180px; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.1); cursor: crosshair; transition: transform 0.2s ease;">
+        
+        <div style="position: relative; width: 180px; height: 180px;">
+          <div [style.backgroundImage]="platformGradient" 
+               (mousemove)="onChartMouseMove($event, platformStats, 'platform')"
+               (mouseleave)="onChartMouseLeave()"
+               style="width: 100%; height: 100%; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.1); cursor: crosshair; transition: transform 0.2s ease;">
+          </div>
+          
+          <ng-container *ngFor="let stat of platformStats">
+            <span *ngIf="stat.percentage > 5" 
+                  style="position: absolute; transform: translate(-50%, -50%); color: white; font-weight: 700; font-size: 12px; text-shadow: 1px 1px 3px rgba(0,0,0,0.9); pointer-events: none;"
+                  [style.left.px]="stat.labelX"
+                  [style.top.px]="stat.labelY">
+              %{{ stat.percentage }}
+            </span>
+          </ng-container>
         </div>
+
         <div class="chart-legend" style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; font-size: 13px; margin-top: auto;">
           <div *ngFor="let stat of platformStats" style="display: flex; align-items: center; gap: 6px; background: #f8fafc; padding: 4px 8px; border-radius: 6px; border: 1px solid #f1f5f9;">
             <span [style.backgroundColor]="stat.color" style="width: 10px; height: 10px; border-radius: 2px;"></span>
-            <span style="color: #334155; font-weight: 500;">{{ stat.name }} <span style="color: #64748b; font-size: 12px;">(%{{ stat.percentage }})</span></span>
+            <span style="color: #334155; font-weight: 500;">{{ stat.name }}</span>
           </div>
         </div>
       </div>
@@ -436,15 +504,33 @@
       <!-- DE SORUMLU (GELİŞTİRİCİ) GRAFİĞİ -->
       <div class="chart-card" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); display: flex; flex-direction: column; align-items: center; gap: 20px;">
         <h3 style="color: #1e293b; font-size: 17px; font-weight: 600; margin: 0; padding-bottom: 8px; border-bottom: 2px solid #f1f5f9; width: 100%; text-align: center;">Geliştirici Dağılımı</h3>
-        <div [style.backgroundImage]="developerGradient" 
-             (mousemove)="onChartMouseMove($event, developerStats, 'developer')"
-             (mouseleave)="onChartMouseLeave()"
-             style="width: 180px; height: 180px; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.1); cursor: crosshair; transition: transform 0.2s ease;">
+        
+        <!-- YAZILARIN GRAFİK ÜSTÜNE BİNMESİ İÇİN KAPSAYICI DİV -->
+        <div style="position: relative; width: 180px; height: 180px;">
+          <!-- Pasta Grafik -->
+          <div [style.backgroundImage]="developerGradient" 
+               (mousemove)="onChartMouseMove($event, developerStats, 'developer')"
+               (mouseleave)="onChartMouseLeave()"
+               style="width: 100%; height: 100%; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.1); cursor: crosshair; transition: transform 0.2s ease;">
+          </div>
+          
+          <!-- Yüzde Yazıları (Döngü ile üstüne basıyoruz) -->
+          <!-- Yüzdesi 5'ten küçük olanlara yazı basmıyoruz ki çok küçük dilimlerde yazılar üst üste binmesin -->
+          <ng-container *ngFor="let stat of developerStats">
+            <span *ngIf="stat.percentage > 5" 
+                  style="position: absolute; transform: translate(-50%, -50%); color: white; font-weight: 700; font-size: 12px; text-shadow: 1px 1px 3px rgba(0,0,0,0.9); pointer-events: none;"
+                  [style.left.px]="stat.labelX"
+                  [style.top.px]="stat.labelY">
+              %{{ stat.percentage }}
+            </span>
+          </ng-container>
         </div>
+
+        <!-- Alt kısımdaki Lejant (İsimler) -->
         <div class="chart-legend" style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; font-size: 13px; margin-top: auto;">
           <div *ngFor="let stat of developerStats" style="display: flex; align-items: center; gap: 6px; background: #f8fafc; padding: 4px 8px; border-radius: 6px; border: 1px solid #f1f5f9;">
             <span [style.backgroundColor]="stat.color" style="width: 10px; height: 10px; border-radius: 2px;"></span>
-            <span style="color: #334155; font-weight: 500;">{{ stat.name }} <span style="color: #64748b; font-size: 12px;">(%{{ stat.percentage }})</span></span>
+            <span style="color: #334155; font-weight: 500;">{{ stat.name }}</span>
           </div>
         </div>
       </div>
@@ -772,6 +858,100 @@
         [ngClass]="dialogState.type === 'danger' ? 'modal-btn-danger' : 'modal-btn-primary'" 
         (click)="onDialogConfirm()">
         {{ dialogState.confirmText }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- TOPLU ÖZEL ALAN İŞLEMLERİ MODALI -->
+<div class="modal-backdrop" *ngIf="showBulkActionModal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3 style="display:flex; align-items:center; gap:8px;">
+        <button *ngIf="bulkActionStep !== 'select'" 
+                (click)="bulkActionStep = 'select'; resetBulkForm()" 
+                type="button" 
+                style="background:none; border:none; cursor:pointer; font-size:18px;">
+          🔙
+        </button>
+        {{ bulkActionStep === 'select' ? 'Toplu Özel Alan İşlemleri' : 
+           bulkActionStep === 'add' ? 'Toplu Özel Alan Ekle' : 
+           bulkActionStep === 'update' ? 'Toplu Özel Alan Değiştir' : 'Toplu Özel Alan Sil' }}
+      </h3>
+      <button (click)="closeBulkActionModal()" type="button" class="chip-remove" style="width: 24px; height: 24px; border-radius: 50%; border: none; cursor: pointer;">✕</button>
+    </div>
+
+    <div class="modal-body">
+      
+      <!-- ADIM 1: NE YAPILACAK SEÇİMİ -->
+      <div *ngIf="bulkActionStep === 'select'" style="display:flex; flex-direction:column; gap:12px; max-width: fit-content; justify-content: center; margin: 0 auto;">
+        <button class="primary-btn" type="button" (click)="selectBulkAction('add')">➕ Tüm Kayıtlara Yeni Özel Alan Ekle</button>
+        <button class="secondary-btn" type="button" (click)="selectBulkAction('update')">✏️ Mevcut Bir Özel Alanı Değiştir</button>
+        <button class="danger-btn" type="button" (click)="selectBulkAction('delete')">🗑️ Mevcut Bir Özel Alanı Sil</button>
+      </div>
+
+      <!-- ADIM 2: EKLEME FORMU -->
+      <div *ngIf="bulkActionStep === 'add'">
+        <div class="state-box" style="margin-bottom:16px; background:#f8fafc; border:1px solid #e2e8f0; font-size:14px; text-align:left; padding:12px;">
+          Bu alana girdiğiniz bilgi tüm kayıtlara <strong>yeni bir veri</strong> olarak eklenecektir.
+        </div>
+        <label>Özel Alan Adı*
+          <input [(ngModel)]="bulkForm.newKey"/>
+        </label>
+        <label>İçerik
+          <input [(ngModel)]="bulkForm.newValue"/>
+        </label>
+      </div>
+
+      <!-- ADIM 3: GÜNCELLEME FORMU -->
+      <div *ngIf="bulkActionStep === 'update'">
+        <div class="state-box" style="margin-bottom:16px; background:#fffbeb; border:1px solid #fde68a; font-size:14px; text-align:left; padding:12px;">
+          Tüm kayıtlardaki eski özel alanı ve içeriğini tamamen değiştirebilirsiniz.
+        </div>
+        <label>Hangi Özel Alan Değiştirilecek? *
+          <select [(ngModel)]="bulkForm.oldKey" (ngModelChange)="onOldKeySelect($event)">
+            <option value="">-- Lütfen seçiniz --</option>
+            <option *ngFor="let key of availableCustomFieldKeys" [value]="key">{{ key }}</option>
+          </select>
+        </label>
+        <div *ngIf="bulkForm.oldKey">
+          <label>Yeni Adı (Aynı kalacaksa değiştirmeyin) *
+            <input [(ngModel)]="bulkForm.newKey" />
+          </label>
+          <label>Yeni İçeriği / Değeri
+            <input [(ngModel)]="bulkForm.newValue" placeholder="Bu alanın yeni içeriği" />
+          </label>
+        </div>
+      </div>
+
+      <!-- ADIM 4: SİLME FORMU -->
+      <div *ngIf="bulkActionStep === 'delete'">
+        <div class="state-box" style="margin-bottom:16px; background:#fef2f2; border:1px solid #fecaca; color:#b91c1c; font-size:14px; text-align:left; padding:12px;">
+          <strong>DİKKAT:</strong> Bu işlem seçtiğiniz özel alanı <strong>tüm projelerden</strong> kalıcı olarak silecektir!
+        </div>
+        <label>Hangi Özel Alan Silinecek? *
+          <select [(ngModel)]="bulkForm.oldKey">
+            <option value="">-- Lütfen seçiniz --</option>
+            <option *ngFor="let key of availableCustomFieldKeys" [value]="key">{{ key }}</option>
+          </select>
+        </label>
+      </div>
+
+    </div>
+
+    <!-- ALT BÖLÜM (BUTONLAR) - Sadece seçim ekranında değilse gösterilir -->
+    <div class="modal-footer" *ngIf="bulkActionStep !== 'select'">
+      <button class="secondary-btn" type="button" (click)="closeBulkActionModal()">İptal</button>
+      
+      <!-- Renkler aksiyona göre değişir -->
+      <button 
+        [ngClass]="{'primary-btn': bulkActionStep === 'add', 'secondary-btn': bulkActionStep === 'update', 'danger-btn': bulkActionStep === 'delete'}" 
+        type="button" 
+        (click)="executeBulkAction()" 
+        [disabled]="isBulkSaving">
+        {{ isBulkSaving ? 'İşleniyor...' : 
+           bulkActionStep === 'add' ? 'Kaydet ve Ekle' : 
+           bulkActionStep === 'update' ? 'Güncelle' : 'Kalıcı Olarak Sil' }}
       </button>
     </div>
   </div>

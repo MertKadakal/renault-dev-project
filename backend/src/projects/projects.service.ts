@@ -121,4 +121,81 @@ export class ProjectsService {
 
     return normalized;
   }
+
+  // projects.service.ts içine eklenecek
+  async addCustomFieldToAll(key: string, value: string): Promise<void> {
+    const projects = await this.projectRepository.find();
+    
+    // Tüm projeleri dönüp yeni alanı ekliyoruz
+    const updatedProjects = projects.map(project => {
+      // Eğer customFields yoksa boş obje oluştur, varsa mevcutu al
+      const currentFields = project.customFields && typeof project.customFields === 'object' 
+        ? project.customFields 
+        : {};
+        
+      return {
+        ...project,
+        customFields: {
+          ...currentFields,
+          [key]: value
+        }
+      };
+    });
+
+    // Toplu halde veritabanına kaydet
+    await this.projectRepository.save(updatedProjects);
+  }
+
+  // Tüm projelerdeki benzersiz custom field anahtarlarını (key) getir
+  async getUniqueCustomFieldKeys(): Promise<string[]> {
+    // Sadece customFields kolonunu çekerek performansı artırıyoruz
+    const projects = await this.projectRepository.find({ select: ['customFields'] });
+    const keys = new Set<string>();
+    
+    projects.forEach(p => {
+      if (p.customFields && typeof p.customFields === 'object') {
+        Object.keys(p.customFields).forEach(k => keys.add(k));
+      }
+    });
+    
+    return Array.from(keys);
+  }
+
+  // Özel alanı güncelle (Anahtar adını veya değerini değiştirir)
+  async updateCustomFieldInAll(oldKey: string, newKey: string, newValue: string): Promise<void> {
+    const projects = await this.projectRepository.find();
+    
+    const updatedProjects = projects.map(project => {
+      if (project.customFields && project.customFields[oldKey] !== undefined) {
+        const currentFields = { ...project.customFields };
+        
+        // Eğer isim değiştiriliyorsa eskisini sil
+        if (oldKey !== newKey) {
+          delete currentFields[oldKey];
+        }
+        
+        currentFields[newKey] = newValue;
+        return { ...project, customFields: currentFields };
+      }
+      return project; // Bu özel alan bu projede yoksa dokunma
+    });
+
+    await this.projectRepository.save(updatedProjects);
+  }
+
+  // Özel alanı tamamen sil
+  async deleteCustomFieldFromAll(key: string): Promise<void> {
+    const projects = await this.projectRepository.find();
+    
+    const updatedProjects = projects.map(project => {
+      if (project.customFields && project.customFields[key] !== undefined) {
+        const currentFields = { ...project.customFields };
+        delete currentFields[key];
+        return { ...project, customFields: currentFields };
+      }
+      return project;
+    });
+
+    await this.projectRepository.save(updatedProjects);
+  }
 }

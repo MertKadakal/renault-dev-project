@@ -35,10 +35,31 @@ export class ProjectsController {
     return this.projectsService.findAll(skipValue, takeValue, searchField, searchTerm);
   }
 
-  @UseGuards(JwtAuthGuard)
-  @Get(':id')
-  findOne(@Param('id') id: string): Promise<Project> {
-    return this.projectsService.findOne(+id);
+  // --- STATİK VE ÖZEL ENDPOINTLER (Dinamik :id yollarından önce gelmeli) ---
+
+  @Get('bulk-custom-field-keys')
+  async getBulkCustomFieldKeys() {
+    return this.projectsService.getUniqueCustomFieldKeys();
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  @Post('bulk-custom-field')
+  async bulkAddCustomField(@Body() body: { key: string; value: string }) {
+    await this.projectsService.addCustomFieldToAll(body.key, body.value);
+    return { message: 'Özel alan tüm projelere başarıyla eklendi.' };
+  }
+
+  @Put('bulk-custom-field')
+  async bulkUpdateCustomField(@Body() body: { oldKey: string; newKey: string; newValue: string }) {
+    await this.projectsService.updateCustomFieldInAll(body.oldKey, body.newKey, body.newValue);
+    return { message: 'Özel alan güncellendi.' };
+  }
+
+  @Delete('bulk-custom-field/:key')
+  async bulkDeleteCustomField(@Param('key') key: string) {
+    await this.projectsService.deleteCustomFieldFromAll(key);
+    return { message: 'Özel alan silindi.' };
   }
 
   // 1. Giriş yapılmış mı? (JwtAuthGuard)
@@ -48,6 +69,14 @@ export class ProjectsController {
   @Post()
   create(@Body() createProjectDto: Partial<Project>): Promise<Project> {
     return this.projectsService.create(createProjectDto);
+  }
+
+  // --- DİNAMİK :id PARAMETRESİ ALAN ENDPOINTLER (En altta yer almalı) ---
+
+  @UseGuards(JwtAuthGuard)
+  @Get(':id')
+  findOne(@Param('id') id: string): Promise<Project> {
+    return this.projectsService.findOne(+id);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)

@@ -75,4 +75,21 @@ export class ProjectService {
   deleteProject(id: number): Observable<Project> {
     return this.http.delete<Project>(`${this.apiUrl}${id}`);
   }
+
+  addBulkCustomField(key: string, value: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}bulk-custom-field`, { key, value });
+  }
+
+  // project.service.ts içine eklenecek
+  getCustomFieldKeys(): Observable<string[]> {
+    return this.http.get<string[]>(`${this.apiUrl}bulk-custom-field-keys`);
+  }
+
+  updateBulkCustomField(oldKey: string, newKey: string, newValue: string): Observable<any> {
+    return this.http.put(`${this.apiUrl}bulk-custom-field`, { oldKey, newKey, newValue });
+  }
+
+  deleteBulkCustomField(key: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}bulk-custom-field/${encodeURIComponent(key)}`);
+  }
 }

@@ -80,6 +80,8 @@ export interface ChartStat {
   count: number;
   percentage: number;
   color: string;
+  labelX?: number;
+  labelY?: number;
 }
 
 interface ConfirmDialogState {
@@ -144,6 +146,12 @@ export class DashboardComponent implements OnInit {
     type: 'confirm',
   };
 
+  //toplu özel alan ekleme
+  showBulkFieldEditor = false;
+  bulkFieldKey = '';
+  bulkFieldValue = '';
+  isBulkSaving = false;
+
   private searchTimeout: any;
 
   ngOnInit(): void {
@@ -151,6 +159,7 @@ export class DashboardComponent implements OnInit {
       this.fetchProjects();
       this.fetchStatisticsData(); // İlk açılışta grafikleri de doldur
       this.fetchEmployees();
+      this.fetchBulks();
     }
     this.currentUser = this.authService.getUser();
   }
@@ -233,6 +242,8 @@ export class DashboardComponent implements OnInit {
         this.applyFiltersAndSorting();
         this.isLoading = false;
         this.cdr.detectChanges();
+
+        
       },
       error: (error) => {
         this.isLoading = false;
@@ -392,6 +403,13 @@ export class DashboardComponent implements OnInit {
         this.isSaving = false;
         this.forceCloseEditor();
         this.fetchProjects();
+
+        this.openDialog({
+          title: 'Başarılı',
+          message: 'Yeni proje başarıyla eklendi.',
+          type: 'alert',
+          confirmText: 'Tamam'
+        });
       },
       error: (error) => {
         this.isSaving = false;
@@ -444,7 +462,16 @@ export class DashboardComponent implements OnInit {
       cancelText: 'Vazgeç',
       onConfirm: () => {
         this.projectService.deleteProject(projectId).subscribe({
-          next: () => this.fetchProjects(),
+          next: () => {
+            this.fetchProjects();
+
+            this.openDialog({
+              title: 'Başarılı',
+              message: 'Projenin aktiflik durumu başarıyla değiştirildi.',
+              type: 'alert',
+              confirmText: 'Tamam'
+            });
+          },
           error: (error) => console.error(`Proje ${targetStatus} yapılırken hata oluştu`, error),
         });
       },
@@ -642,6 +669,24 @@ export class DashboardComponent implements OnInit {
       const start = currentPercentage;
       const end = currentPercentage + stat.percentage;
       gradientParts.push(`${stat.color} ${start}% ${end}%`);
+
+      // --- YENİ EKLENEN KISIM: Yazı koordinatlarını hesaplama ---
+      // Yüzdenin dilimin tam ortasına gelmesi için orta noktayı buluyoruz
+      const middlePercentage = (start + end) / 2; 
+      
+      // Yüzdeyi dereceye ve radyana çevir
+      const angleDeg = (middlePercentage / 100) * 360;
+      const angleRad = angleDeg * (Math.PI / 180);
+
+      // 180x180 px daire için merkez 90,90 noktasıdır. 
+      // r (yarıçap) 55 değeri, metni merkeze biraz daha yakın yerleştirir.
+      const radiusForLabel = 55; 
+      
+      // Trigonometri ile metnin X ve Y konumlarını belirliyoruz
+      stat.labelX = 90 + radiusForLabel * Math.sin(angleRad);
+      stat.labelY = 90 - radiusForLabel * Math.cos(angleRad);
+      // ---------------------------------------------------------
+
       currentPercentage = end;
     });
 
@@ -757,5 +802,96 @@ export class DashboardComponent implements OnInit {
         console.error('İstatistik verileri çekilirken hata oluştu!', error);
       },
     });
+  }
+
+  // --- TOPLU ÖZEL ALAN YÖNETİMİ DEĞİŞKENLERİ ---
+  showBulkActionModal = false;
+  bulkActionStep: 'select' | 'add' | 'update' | 'delete' = 'select'; // select=Menü, diğerleri=Form
+  availableCustomFieldKeys: string[] = []; // Var olan özel alan isimleri listesi
+
+  bulkForm = {
+    oldKey: '',   // Değiştirilecek veya silinecek seçili alan
+    newKey: '',   // Yeni eklenecek veya güncellenecek alanın adı
+    newValue: ''  // Alanın değeri
+  };
+
+  // --- TOPLU ÖZEL ALAN METODLARI ---
+  openBulkActionModal(): void {
+    if (!this.isAdmin()) return;
+    this.bulkActionStep = 'select';
+    this.showBulkActionModal = true;
+    this.resetBulkForm();
+  }
+
+  closeBulkActionModal(): void {
+    this.showBulkActionModal = false;
+    this.resetBulkForm();
+  }
+
+  resetBulkForm(): void {
+    this.bulkForm = { oldKey: '', newKey: '', newValue: '' };
+  }
+
+  // Kullanıcı Ekle/Güncelle/Sil menüsünden birini seçtiğinde
+  selectBulkAction(action: 'add' | 'update' | 'delete'): void {
+    this.bulkActionStep = action;
+    this.resetBulkForm();
+  }
+
+  // Güncelleme yaparken eski anahtar (key) seçildiğinde inputu otomatik doldurmak için UX dokunuşu
+  onOldKeySelect(selectedKey: string): void {
+    this.bulkForm.newKey = selectedKey;
+  }
+
+  // Ortak kaydetme/işlem çalıştırma fonksiyonu
+  executeBulkAction(): void {
+    let request$;
+
+    if (this.bulkActionStep === 'add') {
+      if (!this.bulkForm.newKey) return this.showError('Lütfen eklenecek özel alan adını girin.');
+      if (this.availableCustomFieldKeys.includes(this.bulkForm.newKey)) return this.showError('Bu özel alan zaten mevcut. Lütfen farklı bir ad girin.');
+      request$ = this.projectService.addBulkCustomField(this.bulkForm.newKey, this.bulkForm.newValue);
+    } 
+    else if (this.bulkActionStep === 'update') {
+      if (!this.bulkForm.oldKey || !this.bulkForm.newKey) return this.showError('Lütfen güncellenecek alanı ve yeni adını girin.');
+      request$ = this.projectService.updateBulkCustomField(this.bulkForm.oldKey, this.bulkForm.newKey, this.bulkForm.newValue);
+    } 
+    else if (this.bulkActionStep === 'delete') {
+      if (!this.bulkForm.oldKey) return this.showError('Lütfen silinecek alanı seçin.');
+      
+      // Silme işlemi için ekstra bir onay almak UX açısından iyidir
+      if (!confirm(`Tüm projelerden "${this.bulkForm.oldKey}" alanını kalıcı olarak silmek istediğinize emin misiniz?`)) return;
+      
+      request$ = this.projectService.deleteBulkCustomField(this.bulkForm.oldKey);
+    }
+
+    if (request$) {
+      this.isBulkSaving = true;
+      request$.subscribe({
+        next: () => {
+          this.isBulkSaving = false;
+          this.closeBulkActionModal();
+          this.fetchProjects(); // Verileri tazelemek için
+          this.fetchBulks(); // Özel alan anahtarlarını tazelemek için
+          this.openDialog({ title: 'Başarılı', message: 'Toplu işlem başarıyla tamamlandı.', type: 'alert', confirmText: 'Tamam' });
+        },
+        error: (err) => {
+          this.isBulkSaving = false;
+          console.error('İşlem sırasında hata', err);
+          this.showError('İşlem sırasında bir hata oluştu.');
+        }
+      });
+    }
+  }
+
+  showError(msg: string) {
+    this.openDialog({ title: 'Eksik / Hata', message: msg, type: 'alert', confirmText: 'Tamam' });
+  }
+
+  async fetchBulks(): Promise<void>  {
+    this.projectService.getCustomFieldKeys().subscribe({
+        next: (keys) => this.availableCustomFieldKeys = keys,
+        error: (err) => console.error('Özel alan listesi çekilemedi', err)
+      });
   }
 }
