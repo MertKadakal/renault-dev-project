@@ -4,7 +4,6 @@
     <div class="hero-title">
       <p class="eyebrow">Oyak Renault</p>
       <h2>Proje Takip Sistemi</h2>
-      <p class="subtitle">Filtrele, incele, yönet</p>
     </div>
 
     <!-- SAĞ KISIM: Logo -->
@@ -31,6 +30,10 @@
       (click)="activeTab = 'statistics'">
       <h2 style="font-size: medium;">İstatistikler</h2>
     </button>
+    <div class="user-info" *ngIf="currentUser">
+      <div class="user-ipn">{{ currentUser.username }}</div>
+      <div class="user-role">{{ isAdmin() ? 'Admin' : 'Standart Kullanıcı' }}</div>
+    </div>
   </div>
 
     <!-- 1. SEKME: DASHBOARD (MEVCUT KODLARINIZ) -->
@@ -128,16 +131,11 @@
 
       <!-- SAĞ KISIM: Aksiyon Butonları -->
       <div class="action-buttons" style="display: flex; gap: 8px; align-items: center;">
-        <div class="user-info" *ngIf="currentUser">
-          <div class="user-ipn">{{ currentUser.username }}</div>
-          <div class="user-role">{{ isAdmin() ? 'Admin' : 'Standart Kullanıcı' }}</div>
-        </div>
-        <hr style="height: 24px; border: 1px solid #ccc; margin: 0 8px;" /> 
         <button *ngIf="isAdmin()" class="primary-btn" type="button" (click)="addProject()">
-          + Yeni proje
+          + Yeni
         </button>
         <button *ngIf="isAdmin()" class="secondary-btn" type="button" (click)="openBulkActionModal()" title="Tüm projeler için özel alan yönetimi">
-          ⚙️ Toplu Özel Alan İşlemleri
+          ⚙️ Özel Alanlar
         </button>
         <button class="danger-btn logout-btn" type="button" (click)="onLogout()">
           ⍈
@@ -602,68 +600,82 @@
 
     <div class="modal-body">
       <div class="info-group">
-        <strong>Uygulama Adı:</strong>
-        <p>{{ viewingProject?.uygulamaAdi || '—' }}</p>
+        <p><strong>Uygulama Adı: </strong>{{ viewingProject?.uygulamaAdi || '—' }}</p>
       </div>
 
       <div class="info-group">
-        <strong>Direktörlük:</strong>
-        <p>{{ viewingProject?.sektorluk || '—' }}</p>
+        <p><strong>Direktörlük: </strong>{{ viewingProject?.sektorluk || '—' }}</p>
       </div>
 
       <div class="info-group">
-        <strong>Açıklama:</strong>
-        <p>{{ viewingProject?.tanimUygulamaAciklama || '—' }}</p>
+        <p><strong>Açıklama: </strong>{{ viewingProject?.tanimUygulamaAciklama || '—' }}</p>
       </div>
 
       <div class="info-group">
-        <strong>Canlı URL:</strong>
-        <p>{{ viewingProject?.canliUrl || '—' }}</p>
+        <p><strong>Canlı URL: </strong>{{ viewingProject?.canliUrl || '—' }}</p>
       </div>
 
       <div class="info-group">
-        <strong>Test URL:</strong>
-        <p>{{ viewingProject?.testUrl || '—' }}</p>
+        <p><strong>Test URL: </strong>{{ viewingProject?.testUrl || '—' }}</p>
       </div>
 
       <div class="info-group">
-        <strong>Durum:</strong>
-        <p>{{ viewingProject?.aktifPasif || '—' }}</p>
+        <p><strong>Durum: </strong>{{ viewingProject?.aktifPasif || '—' }}</p>
       </div>
 
       <div class="info-group">
-        <strong>Frontend:</strong>
-        <p>{{ viewingProject?.frontend || '—' }}</p>
+        <p><strong>Frontend: </strong>{{ viewingProject?.frontend || '—' }}</p>
       </div>
 
       <div class="info-group">
-        <strong>Backend:</strong>
-        <p>{{ viewingProject?.backend || '—' }}</p>
+        <p><strong>Backend: </strong>{{ viewingProject?.backend || '—' }}</p>
       </div>
 
       <div class="info-group">
-        <strong>Veritabanı:</strong>
-        <p>{{ viewingProject?.databaseType || '—' }}</p>
+        <p><strong>Veritabanı: </strong>{{ viewingProject?.databaseType || '—' }}</p>
       </div>
 
       <div class="info-group">
-        <strong>Platform:</strong>
-        <p>{{ viewingProject?.platform || '—' }}</p>
+        <p><strong>Platform: </strong>{{ viewingProject?.platform || '—' }}</p>
       </div>
 
       <div class="info-group">
-        <strong>DE Sorumlu:</strong>
-        <p>{{ viewingProject?.deSorumlu || '—' }}</p>
+        <p><strong>DE Sorumlu: </strong>{{ viewingProject?.deSorumlu || '—' }}</p>
       </div>
 
       <div class="info-group">
-        <strong>SLA:</strong>
-        <p>{{ viewingProject?.sla || '—' }}</p>
+        <p><strong>SLA: </strong>{{ viewingProject?.sla || '—' }}</p>
       </div>
 
       <div class="info-group">
-        <strong>Karmaşıklık:</strong>
-        <p>{{ viewingProject?.complexity || '—' }}</p>
+        <p><strong>Karmaşıklık: </strong>{{ viewingProject?.complexity || '—' }}</p>
+      </div>
+
+      <hr style="margin: 16px 0; border: none; border-top: 1px solid #79797a;" />
+
+      <div class="custom-fields">
+        <div class="custom-fields-header">
+          <h4>Özel alanlar:</h4>
+        </div>
+
+        <!-- Liste doluysa bu blok çalışır -->
+        <ng-container *ngIf="formState.customFields && formState.customFields.length > 0; else noFields">
+          <div class="custom-field-row" *ngFor="let field of formState.customFields; let i = index">
+            <div class="custom-field-label">
+              <strong>{{ field.key || 'Alan ' + (i + 1) }}:</strong>
+            </div>
+            <div class="custom-field-value">
+              {{ field.value || '—' }}
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- Liste boş veya tanımsızsa (undefined) bu blok çalışır -->
+        <ng-template #noFields>
+          <div style="color: #666; font-style: italic; text-align: center; margin-top: 12px;">
+            Özel alan bulunamadı
+          </div>
+        </ng-template>
       </div>
     </div>
   </div>
@@ -787,28 +799,27 @@
         <input [(ngModel)]="formState.complexity" />
       </label>
       
-      <!-- DÜZENLENMİŞ HTML -->
-<label class="full-width">
-  Devs
-  <div class="selected-chips" *ngIf="formState.deSorumlu && formState.deSorumlu.length">
-    <span class="chip" *ngFor="let d of formState.deSorumlu">
-      {{ d }} <button type="button" class="chip-remove" (click)="removeDeveloper(d)">×</button>
-    </span>
-  </div>
-  <div class="developer-list">
-    <button
-      type="button"
-      *ngFor="let emp of employees"
-      class="developer-item"
-      [class.selected]="isDeveloperSelected(emp.Name + ' ' + emp.Surname)"
-      (click)="toggleDeveloper(emp.Name + ' ' + emp.Surname)">
-      {{ emp.Name }} {{ emp.Surname }}
-    </button>
-  </div>
-  <div class="info-text" *ngIf="!employees || employees.length === 0">
-    developer listesi bekleniyor...
-  </div>
-</label>
+      <label class="full-width">
+        Devs
+        <div class="selected-chips" *ngIf="formState.deSorumlu && formState.deSorumlu.length">
+          <span class="chip" *ngFor="let d of formState.deSorumlu">
+            {{ d }} <button type="button" class="chip-remove" (click)="removeDeveloper(d)">×</button>
+          </span>
+        </div>
+        <div class="developer-list">
+          <button
+            type="button"
+            *ngFor="let emp of employees"
+            class="developer-item"
+            [class.selected]="isDeveloperSelected(emp.Name + ' ' + emp.Surname)"
+            (click)="toggleDeveloper(emp.Name + ' ' + emp.Surname)">
+            {{ emp.Name }} {{ emp.Surname }}
+          </button>
+        </div>
+        <div class="info-text" *ngIf="!employees || employees.length === 0">
+          developer listesi bekleniyor...
+        </div>
+      </label>
 
       <div class="custom-fields">
         <div class="custom-fields-header">
@@ -826,7 +837,7 @@
 
     <div class="modal-footer">
       <button class="secondary-btn" type="button" (click)="closeEditor()">İptal</button>
-      <button class="primary-btn" type="button" (click)="saveProject()" [disabled]="isSaving">
+      <button class="primary-btn" type="button" (click)="saveProject()" [disabled]="isSaving" *ngIf="!editingProject || isFormDirty()">
         {{ isSaving ? 'Kaydediliyor...' : 'Kaydet' }}
       </button>
     </div>

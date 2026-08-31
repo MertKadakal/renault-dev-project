@@ -406,7 +406,7 @@ export class DashboardComponent implements OnInit {
 
         this.openDialog({
           title: 'Başarılı',
-          message: 'Yeni proje başarıyla eklendi.',
+          message: 'Proje başarıyla kaydedildi.',
           type: 'alert',
           confirmText: 'Tamam'
         });

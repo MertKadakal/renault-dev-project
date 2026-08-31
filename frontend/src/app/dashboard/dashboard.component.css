@@ -110,23 +110,23 @@
 }
 
 .user-info {
+  margin-left: auto; 
+  /* İsteğe bağlı olarak içeriği dikeyde ortalamak için: */
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
-  gap: 2px;
-  padding: 8px 0;
-  text-align: right;
+  justify-content: center;
+  align-items: flex-end; /* Metinleri de sağa hizalamak isterseniz */
 }
 
 .user-ipn {
-  font-size: 0.9rem;
+  font-size: 1.2rem;
   font-weight: 700;
   color: #0f172a;
   letter-spacing: 0.5px;
 }
 
 .user-role {
-  font-size: 0.75rem;
+  font-size: 1.0rem;
   color: #64748b;
   font-weight: 500;
 }
@@ -703,13 +703,12 @@
 /* --- SEKME (TAB) MENÜSÜ VE BUTONLARI --- */
 .tabs-container {
   display: flex;
-  gap: 16px;
   border-bottom: 2px solid #eaeaea;
   padding: 0 16px;
 }
 
 .tab-button {
-  padding: 12px 16px;
+  padding: 0 16px;
   border: none;
   background: none;
   cursor: pointer;
@@ -725,7 +724,7 @@
 
 /* Aktif Sekme Stili (Renault sarısı) */
 .tab-button.active {
-  border-bottom-color: #ffcc00;
+  border-bottom-color: #4f46e5;
   font-weight: 600;
   color: #000;
 }
