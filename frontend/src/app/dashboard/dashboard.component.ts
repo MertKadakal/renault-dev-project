@@ -403,6 +403,7 @@ export class DashboardComponent implements OnInit {
         this.isSaving = false;
         this.forceCloseEditor();
         this.fetchProjects();
+        this.fetchBulks();
 
         this.openDialog({
           title: 'Başarılı',
