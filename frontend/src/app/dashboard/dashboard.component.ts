@@ -131,7 +131,7 @@ export class DashboardComponent implements OnInit {
 
   // Sayfalama Durumu
   currentPage: number = 1;
-  readonly pageSize: number = 20;
+  readonly pageSize: number = 21;
   totalPages: number = 1;
   paginatedProjects: Project[] = [];
   allStatsData: Project[] = [];
@@ -518,7 +518,7 @@ export class DashboardComponent implements OnInit {
     // Aktif sayısını hesapla
     this.aktifs = this.filteredProjects.filter((project) => project.aktifPasif === 'A').length;
 
-    // Client-side sıralama devam edebilir (o anki 20 veya daha az kayıt üzerinde çalışır)
+    // Client-side sıralama devam edebilir (o anki 21 veya daha az kayıt üzerinde çalışır)
     if (this.sortField) {
       this.filteredProjects.sort((a, b) => this.compareProjects(a, b, this.sortField));
     }

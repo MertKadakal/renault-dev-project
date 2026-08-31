@@ -28,7 +28,7 @@ export class ProjectsService {
   ) {}
 
   // Sayfalama, arama ve sıralama desteği eklendi
-  async findAll(skip = 0, take = 20, searchField?: string, searchTerm?: string): Promise<[Project[], number]> {
+  async findAll(skip = 0, take = 21, searchField?: string, searchTerm?: string): Promise<[Project[], number]> {
     let whereClause: FindOptionsWhere<Project> | FindOptionsWhere<Project>[] = {};
 
     if (searchTerm && searchTerm.trim() !== '') {
@@ -146,20 +146,44 @@ export class ProjectsService {
     await this.projectRepository.save(updatedProjects);
   }
 
-  // Tüm projelerdeki benzersiz custom field anahtarlarını (key) getir
-  async getUniqueCustomFieldKeys(): Promise<string[]> {
+  // Tüm projelerdeki ortak custom field anahtarlarını (key) getir
+  async getCommonCustomFieldKeys(): Promise<string[]> {
     // Sadece customFields kolonunu çekerek performansı artırıyoruz
     const projects = await this.projectRepository.find({ select: ['customFields'] });
-    const keys = new Set<string>();
     
-    projects.forEach(p => {
+    if (projects.length === 0) {
+      return []; // Hiç proje yoksa boş dizi dön
+    }
+
+    let commonKeys: Set<string> | null = null;
+    
+    for (const p of projects) {
+      let currentKeys: string[] = [];
+      
       if (p.customFields && typeof p.customFields === 'object') {
-        Object.keys(p.customFields).forEach(k => keys.add(k));
+        currentKeys = Object.keys(p.customFields);
       }
-    });
+      
+      if (commonKeys === null) {
+        // 1. İlk kayıttaki key'leri başlangıç referansı olarak ayarla
+        commonKeys = new Set(currentKeys);
+      } else {
+        // 2. Mevcut referans ile sıradaki kaydın key'lerini karşılaştır
+        for (const key of commonKeys) {
+          if (!currentKeys.includes(key)) {
+            commonKeys.delete(key); // Her iki kayıtta da yoksa listeden çıkar
+          }
+        }
+      }
+      
+      // 3. Eğer hiç ortak key kalmadıysa diğer kayıtları kontrol etmeye gerek yok (Early exit)
+      if (commonKeys.size === 0) {
+        break;
+      }
+    }
     
-    return Array.from(keys);
-  }
+    return commonKeys ? Array.from(commonKeys) : [];
+}
 
   // Özel alanı güncelle (Anahtar adını veya değerini değiştirir)
   async updateCustomFieldInAll(oldKey: string, newKey: string, newValue: string): Promise<void> {

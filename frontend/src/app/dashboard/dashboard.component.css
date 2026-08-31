@@ -111,11 +111,14 @@
 
 .user-info {
   margin-left: auto; 
-  /* İsteğe bağlı olarak içeriği dikeyde ortalamak için: */
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: flex-end; /* Metinleri de sağa hizalamak isterseniz */
+  
+  /* Yan yana dizilmelerini sağlar */
+  flex-direction: row; 
+  
+  align-items: center; 
+    
+  padding: 5px;
 }
 
 .user-ipn {
@@ -704,7 +707,6 @@
 .tabs-container {
   display: flex;
   border-bottom: 2px solid #eaeaea;
-  padding: 0 16px;
 }
 
 .tab-button {

@@ -29,7 +29,7 @@ export class ProjectsController {
   ) {
     // URL'den gelen query parametreleri string'tir. Veritabanı için number'a çevirmeliyiz.
     const skipValue = skip ? parseInt(skip, 10) : 0;
-    const takeValue = take ? parseInt(take, 10) : 20;
+    const takeValue = take ? parseInt(take, 10) : 21;
 
     // Arama terimlerini servise iletiyoruz
     return this.projectsService.findAll(skipValue, takeValue, searchField, searchTerm);
@@ -39,7 +39,7 @@ export class ProjectsController {
 
   @Get('bulk-custom-field-keys')
   async getBulkCustomFieldKeys() {
-    return this.projectsService.getUniqueCustomFieldKeys();
+    return this.projectsService.getCommonCustomFieldKeys();
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)

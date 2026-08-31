@@ -32,6 +32,7 @@
     </button>
     <div class="user-info" *ngIf="currentUser">
       <div class="user-ipn">{{ currentUser.username }}</div>
+      <hr style="height: 24px; border: 1px solid #ccc; margin: 0 8px;" />
       <div class="user-role">{{ isAdmin() ? 'Admin' : 'Standart Kullanıcı' }}</div>
     </div>
   </div>
@@ -80,7 +81,7 @@
               width: 24px;
               height: 24px;
               border-radius: 50%;
-              border: none;
+              border: 1px solid #ccc;
               background: #e2e8f0;
               color: #64748b;
               font-size: 13px;
@@ -583,7 +584,7 @@
           width: 24px;
           height: 24px;
           border-radius: 50%;
-          border: none;
+          border: 1px solid #ccc;
           background: #e2e8f0;
           color: #64748b;
           font-size: 13px;
@@ -879,18 +880,34 @@
   <div class="modal-card">
     <div class="modal-header">
       <h3 style="display:flex; align-items:center; gap:8px;">
-        <button *ngIf="bulkActionStep !== 'select'" 
-                (click)="bulkActionStep = 'select'; resetBulkForm()" 
-                type="button" 
-                style="background:none; border:none; cursor:pointer; font-size:18px;">
-          🔙
-        </button>
         {{ bulkActionStep === 'select' ? 'Toplu Özel Alan İşlemleri' : 
            bulkActionStep === 'add' ? 'Toplu Özel Alan Ekle' : 
            bulkActionStep === 'update' ? 'Toplu Özel Alan Değiştir' : 'Toplu Özel Alan Sil' }}
       </h3>
-      <button (click)="closeBulkActionModal()" type="button" class="chip-remove" style="width: 24px; height: 24px; border-radius: 50%; border: none; cursor: pointer;">✕</button>
-    </div>
+<button 
+        (click)="closeBulkActionModal()"
+        type="button"
+        title="Kapat"
+        style="
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          border: 1px solid #ccc;
+          background: #e2e8f0;
+          color: #64748b;
+          font-size: 13px;
+          font-weight: bold;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          line-height: 1;
+        "
+        onmouseover="this.style.background='#cbd5e1'; this.style.color='#1e293b';"
+        onmouseout="this.style.background='#e2e8f0'; this.style.color='#64748b';">
+        ✕
+      </button>    </div>
 
     <div class="modal-body">
       

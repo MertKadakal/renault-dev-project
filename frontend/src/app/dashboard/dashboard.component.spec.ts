@@ -739,7 +739,7 @@ describe('DashboardComponent', () => {
 
       it('pageStart ve pageEnd değerlerini doğru hesaplamalıdır', () => {
         component.currentPage = 2;
-        (component as any).pageSize = 20;
+        (component as any).pageSize = 21;
         component.totalRecords = 45;
 
         expect(component.pageStart).toBe(21);
